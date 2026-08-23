@@ -18,7 +18,8 @@
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force",
     "db:harden": "prisma db execute --file prisma/security.sql --schema prisma/schema.prisma",
-    "env:check": "node scripts/check-env.mjs"
+    "env:check": "node scripts/check-env.mjs",
+    "vercel:env": "node scripts/vercel-env.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
