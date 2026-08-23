@@ -58,6 +58,21 @@ function sniffMime(buffer: Buffer): string | null {
   return null;
 }
 
+/**
+ * Arquivo recusado por regra de validação — formato, tamanho ou assinatura.
+ *
+ * Existe como classe própria para a API distinguir "o usuário mandou algo
+ * inválido" (400, com explicação) de "algo quebrou aqui dentro" (500).
+ * Sem essa distinção, uma recusa legítima aparece como erro interno e a
+ * pessoa não sabe o que corrigir.
+ */
+export class UploadValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UploadValidationError';
+  }
+}
+
 /** Erro de configuração ausente, separado para virar mensagem clara na API. */
 export class StorageNotConfiguredError extends Error {
   constructor() {
@@ -138,13 +153,13 @@ export async function uploadImage(
   const client = getClient();
 
   if (!ALLOWED_MIME.includes(file.type as (typeof ALLOWED_MIME)[number])) {
-    throw new Error(
+    throw new UploadValidationError(
       `Formato não aceito (${file.type || 'desconhecido'}). Use JPG, PNG, WebP, AVIF ou GIF.`,
     );
   }
 
   if (file.size > MAX_UPLOAD_BYTES) {
-    throw new Error(
+    throw new UploadValidationError(
       `Arquivo de ${(file.size / 1024 / 1024).toFixed(1)} MB excede o limite de ${MAX_UPLOAD_BYTES / 1024 / 1024} MB.`,
     );
   }
@@ -156,11 +171,11 @@ export async function uploadImage(
   const realMime = sniffMime(buffer);
 
   if (!realMime) {
-    throw new Error('O arquivo não é uma imagem válida.');
+    throw new UploadValidationError('O arquivo não é uma imagem válida.');
   }
 
   if (realMime !== file.type) {
-    throw new Error(
+    throw new UploadValidationError(
       `O conteúdo do arquivo é ${realMime}, mas foi enviado como ${file.type}. Envie a imagem original.`,
     );
   }

@@ -303,6 +303,15 @@ model SiteSettings {
   // Tema ativo: elegante-neutra | moderna-sofisticada | aconchegante-premium
   theme String @default("elegante-neutra")
 
+  // Identificacao da empresa
+  //
+  // Aparece no rodape e nas politicas legais. O Codigo de Defesa do
+  // Consumidor exige identificacao clara do fornecedor em site que oferece
+  // servicos, e a LGPD exige nomear o controlador dos dados pessoais.
+  // O Google AdSense tambem valoriza essa transparencia na revisao.
+  companyName String? // razao social
+  cnpj        String?
+
   // Contato
   whatsapp        String  @default("5511999999999")
   whatsappMessage String  @default("Ola! Vim pelo site Guia Interativo e gostaria de tirar uma duvida sobre cortinas.")

@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
 import { markdownToHtml } from '@/lib/markdown';
+import { applySiteTokens } from '@/lib/content-tokens';
+import { getSettings } from '@/lib/settings';
 import { formatDate } from '@/lib/utils';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
 import { SectionHeading } from '@/components/shared/section-heading';
@@ -47,7 +49,11 @@ export async function DbPage({ slug, kicker = 'Documento' }: DbPageProps) {
   const page = await getDbPage(slug);
   if (!page) notFound();
 
-  const html = markdownToHtml(page.content);
+  // Os marcadores ({{email}}, {{empresa}}, {{cnpj}}...) são resolvidos a
+  // partir das configurações, para que os documentos legais não guardem
+  // cópias desatualizadas dos dados da empresa.
+  const settings = await getSettings();
+  const html = markdownToHtml(applySiteTokens(page.content, settings));
   const crumbs = [{ label: page.title, href: `/${page.slug}` }];
 
   return (

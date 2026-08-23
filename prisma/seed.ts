@@ -186,6 +186,10 @@ async function main() {
       description:
         'Conteúdo aprofundado sobre cortinas e persianas: tipos, tecidos, medidas, instalação, manutenção e a escolha ideal para cada ambiente.',
       theme: 'elegante-neutra',
+      // Identificação do fornecedor, exibida no rodapé e nas políticas
+      companyName: 'ELITE INFINITE DIGITAL LTDA',
+      cnpj: '57434556000103',
+      address: 'R. Rosa Xavier, 725 — Centro — Tabira/PE — CEP 56.780-000',
       whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '5511999999999',
       whatsappMessage:
         'Olá! Vim pelo site Guia Interativo e gostaria de tirar uma dúvida sobre cortinas.',

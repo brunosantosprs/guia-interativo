@@ -21,6 +21,8 @@ const FALLBACK: SiteSettings = {
   faviconUrl: null,
   ogImage: '/images/og-default.jpg',
   theme: 'elegante-neutra',
+  companyName: null,
+  cnpj: null,
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '5511999999999',
   whatsappMessage:
     'Olá! Vim pelo site Guia Interativo e gostaria de tirar uma dúvida sobre cortinas.',

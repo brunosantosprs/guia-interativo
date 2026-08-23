@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Instagram, Facebook, Youtube, Mail, Phone, Clock } from 'lucide-react';
 import { LEGAL_NAV, MAIN_NAV } from '@/lib/constants';
 import { NewsletterForm } from '@/components/shared/newsletter-form';
+import { formatarCNPJ } from '@/lib/validations/settings';
 import type { SiteSettings } from '@prisma/client';
 
 interface FooterProps {
@@ -169,8 +170,35 @@ export function Footer({ settings, topics = [], legalPages = [] }: FooterProps) 
         </div>
       </div>
 
+      {/* Identificação do fornecedor.
+          O Código de Defesa do Consumidor exige que quem oferece produto ou
+          serviço na internet se identifique de forma clara e acessível, e a
+          LGPD exige nomear o controlador dos dados. É também um dos sinais
+          de confiança avaliados na revisão do Google AdSense. */}
+      {settings.companyName || settings.cnpj || settings.address ? (
+        <div className="border-t border-border">
+          <div className="container py-5">
+            <address className="text-xs not-italic leading-relaxed text-muted-foreground">
+              {settings.companyName ? (
+                <span className="font-medium text-foreground">{settings.companyName}</span>
+              ) : null}
+              {settings.companyName && settings.cnpj ? ' · ' : null}
+              {settings.cnpj ? <span>CNPJ {formatarCNPJ(settings.cnpj)}</span> : null}
+              {settings.address ? (
+                <>
+                  <br />
+                  {settings.address}
+                </>
+              ) : null}
+            </address>
+          </div>
+        </div>
+      ) : null}
+
       <div className="border-t border-border">
         <div className="container flex flex-col gap-4 py-6 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
+          {/* Aqui vai a marca, não a razão social — esta já aparece
+              identificada logo acima, com CNPJ e endereço. */}
           <p>
             © {year} {settings.siteName}. Todos os direitos reservados.
           </p>

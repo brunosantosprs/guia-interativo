@@ -5,6 +5,44 @@ import { imageRefSchema, roleSchema } from './content';
 
 const optionalUrl = z.string().url('URL inválida').or(z.literal('')).nullable().optional();
 
+/**
+ * Valida um CNPJ pelos dígitos verificadores.
+ *
+ * Checar só o formato não basta: o CNPJ aparece no rodapé e nas políticas
+ * legais, identificando o fornecedor. Um número com dígito errado passa
+ * despercebido por anos e enfraquece justamente o documento que deveria
+ * dar segurança jurídica.
+ */
+export function cnpjValido(entrada: string): boolean {
+  const n = entrada.replace(/\D/g, '');
+
+  if (n.length !== 14) return false;
+  if (/^(\d)\1{13}$/.test(n)) return false; // 00000000000000 e afins
+
+  const digito = (base: string, pesos: number[]): number => {
+    const soma = base
+      .split('')
+      .reduce((acc, d, i) => acc + Number(d) * pesos[i], 0);
+    const resto = soma % 11;
+    return resto < 2 ? 0 : 11 - resto;
+  };
+
+  const d1 = digito(n.slice(0, 12), [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+  const d2 = digito(n.slice(0, 13), [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+
+  return d1 === Number(n[12]) && d2 === Number(n[13]);
+}
+
+/** Formata 57434556000103 como 57.434.556/0001-03. */
+export function formatarCNPJ(entrada: string): string {
+  const n = entrada.replace(/\D/g, '').slice(0, 14);
+  return n
+    .replace(/^(\d{2})(\d)/, '$1.$2')
+    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2');
+}
+
 export const settingsSchema = z.object({
   siteName: z.string().min(2, 'Informe o nome do site').max(80),
   tagline: z.string().max(160).default(''),
@@ -14,6 +52,15 @@ export const settingsSchema = z.object({
   ogImage: imageRefSchema,
 
   theme: z.enum(['elegante-neutra', 'moderna-sofisticada', 'aconchegante-premium']),
+
+  // Identificação da empresa
+  companyName: z.string().max(140).or(z.literal('')).nullable().optional(),
+  cnpj: z
+    .string()
+    .refine((v) => v === '' || cnpjValido(v), 'CNPJ inválido — confira os dígitos')
+    .or(z.literal(''))
+    .nullable()
+    .optional(),
 
   whatsapp: z
     .string()

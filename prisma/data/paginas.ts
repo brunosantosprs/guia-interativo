@@ -40,7 +40,13 @@ Este documento foi elaborado em conformidade com a **Lei nº 13.709/2018 — Lei
 
 ## 1. Quem é o controlador dos dados
 
-O controlador dos dados pessoais tratados neste site é o **Guia Interativo**, responsável pelo domínio guiainterativo.com.
+O controlador dos dados pessoais tratados neste site é:
+
+**{{empresa}}**
+CNPJ {{cnpj}}
+{{endereco}}
+
+Responsável pelo domínio guiainterativo.com e pela marca **{{site}}**.
 
 Para qualquer assunto relacionado a privacidade e proteção de dados, o canal de contato é o e-mail informado na seção "Como exercer seus direitos", ao final deste documento.
 
@@ -189,7 +195,7 @@ A LGPD garante a você os seguintes direitos:
 
 ## 12. Como exercer seus direitos
 
-Envie um e-mail para **contato@guiainterativo.com** com o assunto "LGPD — Solicitação de titular", descrevendo o direito que deseja exercer.
+Envie um e-mail para **{{email}}** com o assunto "LGPD — Solicitação de titular", descrevendo o direito que deseja exercer.
 
 Responderemos em até **15 dias corridos**. Podemos solicitar informações adicionais para confirmar sua identidade antes de atender ao pedido — medida de segurança que protege você.
 
@@ -211,7 +217,7 @@ Alterações relevantes serão comunicadas de forma destacada na página inicial
 
 ## 16. Contato
 
-**E-mail:** contato@guiainterativo.com
+**E-mail:** {{email}}
 **Site:** guiainterativo.com
 
 Se entender que seus direitos não foram adequadamente atendidos, você pode apresentar reclamação à **Autoridade Nacional de Proteção de Dados (ANPD)** em [gov.br/anpd](https://www.gov.br/anpd/).`,
@@ -334,7 +340,7 @@ Fica eleito o foro da comarca do domicílio do usuário para dirimir eventuais c
 
 ## 13. Contato
 
-Dúvidas sobre estes Termos de Uso podem ser enviadas para **contato@guiainterativo.com** ou pela nossa [página de contato](/contato).`,
+Dúvidas sobre estes Termos de Uso podem ser enviadas para **{{email}}** ou pela nossa [página de contato](/contato).`,
   },
   {
     title: 'Política de Cookies',
@@ -459,7 +465,7 @@ Esta Política de Cookies pode ser atualizada sempre que houver mudança nas fer
 
 ## 8. Contato
 
-Dúvidas sobre esta política podem ser enviadas para **contato@guiainterativo.com**.`,
+Dúvidas sobre esta política podem ser enviadas para **{{email}}**.`,
   },
   {
     title: 'Aviso Legal',
@@ -559,7 +565,7 @@ Este site exibe anúncios do Google AdSense. **Não temos controle editorial** s
 
 ## 11. Contato
 
-Dúvidas sobre este aviso: **contato@guiainterativo.com**.
+Dúvidas sobre este aviso: **{{email}}**.
 
 Este documento deve ser lido em conjunto com os [Termos de Uso](/termos-de-uso), a [Política de Privacidade](/politica-de-privacidade) e a [Política Editorial](/politica-editorial).`,
   },
@@ -665,7 +671,7 @@ Nossa resposta é editorial: os guias ensinam a **fazer sozinho** sempre que faz
 
 ## 11. Contato
 
-Sugestões de pauta, correções e críticas: **contato@guiainterativo.com** ou pela [página de contato](/contato).`,
+Sugestões de pauta, correções e críticas: **{{email}}** ou pela [página de contato](/contato).`,
   },
   {
     title: 'Direitos Autorais',
@@ -720,7 +726,7 @@ Sem pedir autorização, você pode:
 - Utilizar o conteúdo para **treinar modelos de linguagem** ou alimentar bases de dados comerciais
 - Realizar **raspagem automatizada** (scraping) do site ou do banco de dados
 
-Solicitações: **contato@guiainterativo.com**, com o assunto "Autorização de uso".
+Solicitações: **{{email}}**, com o assunto "Autorização de uso".
 
 ## 5. O que é vedado
 
@@ -739,7 +745,7 @@ São mencionados exclusivamente em caráter **descritivo e informativo**, ao amp
 
 ## 7. Notificação de violação
 
-Se você é titular de direitos autorais e entende que algum material publicado aqui viola esses direitos, entre em contato pelo e-mail **contato@guiainterativo.com** com o assunto "Notificação de direitos autorais", informando:
+Se você é titular de direitos autorais e entende que algum material publicado aqui viola esses direitos, entre em contato pelo e-mail **{{email}}** com o assunto "Notificação de direitos autorais", informando:
 
 1. **Identificação da obra** supostamente violada
 2. **URL exata** da página deste site onde o material aparece
@@ -751,11 +757,11 @@ Analisamos toda notificação e, quando procedente, **removemos ou corrigimos o 
 
 ## 8. Se encontrar nosso conteúdo copiado
 
-Agradecemos o aviso. Se você encontrar textos deste site republicados sem autorização em outro domínio, escreva para **contato@guiainterativo.com** com o link. Levamos plágio a sério — não apenas por direito autoral, mas porque conteúdo duplicado prejudica quem produziu o original.
+Agradecemos o aviso. Se você encontrar textos deste site republicados sem autorização em outro domínio, escreva para **{{email}}** com o link. Levamos plágio a sério — não apenas por direito autoral, mas porque conteúdo duplicado prejudica quem produziu o original.
 
 ## 9. Contato
 
-**E-mail:** contato@guiainterativo.com
+**E-mail:** {{email}}
 **Site:** guiainterativo.com
 
 Este documento complementa os [Termos de Uso](/termos-de-uso) e deve ser lido em conjunto com eles.`,

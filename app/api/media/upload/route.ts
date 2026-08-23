@@ -4,6 +4,7 @@ import {
   MAX_UPLOAD_BYTES,
   StorageNotConfiguredError,
   uploadImage,
+  UploadValidationError,
 } from '@/lib/storage';
 
 /**
@@ -70,8 +71,8 @@ export async function POST(request: Request) {
     if (error instanceof StorageNotConfiguredError) {
       return fail(error.message, 501);
     }
-    // Erros de validação do storage (formato, tamanho) já vêm legíveis
-    if (error instanceof Error && /Formato não aceito|excede o limite|Falha no upload/.test(error.message)) {
+    // Arquivo recusado por regra: a mensagem já explica o que corrigir
+    if (error instanceof UploadValidationError) {
       return fail(error.message, 400);
     }
     return handleError(error);

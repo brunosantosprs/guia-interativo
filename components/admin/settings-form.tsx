@@ -5,7 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertTriangle, Check, Loader2, Save } from 'lucide-react';
-import { settingsSchema, type SettingsInput } from '@/lib/validations/settings';
+import {
+  formatarCNPJ,
+  settingsSchema,
+  type SettingsInput,
+} from '@/lib/validations/settings';
 import { THEMES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -51,6 +55,8 @@ export function SettingsForm({ settings }: SettingsFormProps) {
       faviconUrl: settings.faviconUrl ?? '',
       ogImage: settings.ogImage ?? '',
       theme: settings.theme as SettingsInput['theme'],
+      companyName: settings.companyName ?? '',
+      cnpj: settings.cnpj ?? '',
       whatsapp: settings.whatsapp,
       whatsappMessage: settings.whatsappMessage ?? '',
       email: settings.email,
@@ -267,6 +273,49 @@ export function SettingsForm({ settings }: SettingsFormProps) {
             </Field>
           </FormSection>
 
+          <FormSection
+            title="Dados da empresa"
+            description="Aparecem no rodapé de todas as páginas e identificam o responsável nas políticas legais. O Código de Defesa do Consumidor exige essa identificação em site que oferece serviços."
+          >
+            <Field
+              label="Razão social"
+              htmlFor="companyName"
+              error={errors.companyName?.message}
+            >
+              <Input
+                id="companyName"
+                {...register('companyName')}
+                placeholder="ELITE INFINITE DIGITAL LTDA"
+              />
+            </Field>
+
+            <Field
+              label="CNPJ"
+              htmlFor="cnpj"
+              error={errors.cnpj?.message}
+              hint="Os dígitos verificadores são conferidos ao salvar."
+            >
+              <Input
+                id="cnpj"
+                value={values.cnpj ?? ''}
+                onChange={(event) =>
+                  setValue('cnpj', formatarCNPJ(event.target.value), { shouldValidate: true })
+                }
+                placeholder="00.000.000/0000-00"
+                inputMode="numeric"
+              />
+            </Field>
+
+            <Field
+              label="Endereço"
+              htmlFor="address"
+              error={errors.address?.message}
+              hint="Logradouro, número, bairro, cidade/UF e CEP."
+            >
+              <Textarea id="address" rows={2} {...register('address')} />
+            </Field>
+          </FormSection>
+
           <FormSection title="Dados de contato">
             <Field label="E-mail" htmlFor="email" required error={errors.email?.message}>
               <Input id="email" type="email" {...register('email')} />
@@ -284,9 +333,6 @@ export function SettingsForm({ settings }: SettingsFormProps) {
               />
             </Field>
 
-            <Field label="Endereço" htmlFor="address">
-              <Textarea id="address" rows={2} {...register('address')} />
-            </Field>
           </FormSection>
 
           <FormSection title="Redes sociais" description="Deixe em branco para ocultar do rodapé.">
