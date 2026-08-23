@@ -159,12 +159,51 @@ if (naVercel && nextauthUrl && !nextauthUrl.startsWith('https://')) {
 // Seguranca — service_role nunca pode chegar ao navegador
 // ---------------------------------------------------------------------------
 
-for (const chave of Object.keys(process.env)) {
-  if (chave.startsWith('NEXT_PUBLIC_') && /SERVICE_ROLE|SECRET|PASSWORD/i.test(chave)) {
+/**
+ * Descreve o que ha de perigoso no valor, ou null se nao houver nada.
+ *
+ * Conferir so o nome da variavel nao basta: uma service_role colada dentro
+ * de algo chamado NEXT_PUBLIC_SUPABASE_ANON_KEY passaria batido — nome
+ * inocente, conteudo que ignora todas as regras de seguranca do banco.
+ */
+function segredoNoValor(valor) {
+  if (!valor) return null;
+
+  // Chaves novas do Supabase trazem o proposito no prefixo
+  if (valor.startsWith('sb_secret_')) return 'e uma chave secreta do Supabase';
+
+  // Strings de conexao carregam a senha do banco
+  if (/^postgres(ql)?:\/\//i.test(valor)) return 'e uma string de conexao com o banco';
+
+  // Chaves classicas do Supabase sao JWTs: o papel esta no payload
+  if (valor.startsWith('eyJ')) {
+    const payload = valor.split('.')[1];
+    if (!payload) return null;
+    try {
+      const { role } = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+      if (role && role !== 'anon') return `e um token com papel "${role}"`;
+    } catch {
+      // Nao era JWT legivel — nada a declarar
+    }
+  }
+
+  return null;
+}
+
+for (const [chave, valor] of Object.entries(process.env)) {
+  if (!chave.startsWith('NEXT_PUBLIC_')) continue;
+
+  const porNome = /SERVICE_ROLE|SECRET|PASSWORD|PRIVATE/i.test(chave)
+    ? 'o nome indica um segredo'
+    : null;
+  const porValor = segredoNoValor(valor);
+
+  if (porNome || porValor) {
     erros.push(
-      `${chave} tem o prefixo NEXT_PUBLIC_.\n` +
+      `${chave} tem o prefixo NEXT_PUBLIC_, mas ${porValor ?? porNome}.\n` +
         '    Tudo com esse prefixo e embutido no JavaScript enviado ao\n' +
-        '    navegador, onde qualquer visitante le. Remova o prefixo.',
+        '    navegador, onde qualquer visitante le. Remova o prefixo e use\n' +
+        '    a variavel apenas no servidor.',
     );
   }
 }
