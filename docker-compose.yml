@@ -1,0 +1,32 @@
+# PostgreSQL para desenvolvimento local.
+#
+#   docker compose up -d      # sobe o banco
+#   docker compose down       # para o banco (mantém os dados)
+#   docker compose down -v    # para e apaga os dados
+#
+# A DATABASE_URL correspondente já é a padrão do .env.example:
+#   postgresql://postgres:postgres@localhost:5432/guiainterativo?schema=public
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: guiainterativo-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: guiainterativo
+      # Evita problemas de ordenação com acentos em português
+      POSTGRES_INITDB_ARGS: '--locale-provider=icu --icu-locale=pt-BR --encoding=UTF8'
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d guiainterativo']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:

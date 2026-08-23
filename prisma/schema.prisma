@@ -1,0 +1,373 @@
+// ---------------------------------------------------------------------------
+// Guia Interativo - schema Prisma (PostgreSQL)
+// Modela todo o conteudo editorial do site (posts, paginas, tipos de cortinas,
+// servicos), a biblioteca de midia, as configuracoes globais e a autenticacao.
+// ---------------------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ===========================================================================
+// AUTENTICACAO (NextAuth.js + credenciais)
+// ===========================================================================
+
+enum Role {
+  ADMIN // acesso total, inclusive usuarios e configuracoes
+  EDITOR // cria e publica qualquer conteudo
+  AUTHOR // cria conteudo e publica apenas o proprio
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  password      String? // hash bcrypt (login por credenciais)
+  image         String?
+  bio           String?   @db.Text
+  role          Role      @default(AUTHOR)
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  posts    Post[]
+  pages    Page[]
+  media    Media[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ===========================================================================
+// CONTEUDO EDITORIAL
+// ===========================================================================
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?  @db.Text
+  color       String? // hex usado nos badges
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts Post[]
+
+  @@index([slug])
+  @@map("categories")
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  posts Post[] @relation("PostTags")
+
+  @@index([slug])
+  @@map("tags")
+}
+
+model Post {
+  id             String        @id @default(cuid())
+  title          String
+  slug           String        @unique
+  excerpt        String        @db.Text
+  content        String        @db.Text // markdown estendido
+  coverImage     String?
+  coverImageAlt  String?
+  status         ContentStatus @default(DRAFT)
+  featured       Boolean       @default(false)
+  readingMinutes Int           @default(5)
+  views          Int           @default(0)
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  keywords        String[] @default([])
+  canonicalUrl    String?
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  authorId   String
+  author     User      @relation(fields: [authorId], references: [id])
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags       Tag[]     @relation("PostTags")
+
+  @@index([slug])
+  @@index([status, publishedAt])
+  @@index([categoryId])
+  @@map("posts")
+}
+
+model Page {
+  id           String        @id @default(cuid())
+  title        String
+  slug         String        @unique
+  content      String        @db.Text
+  excerpt      String?       @db.Text
+  coverImage   String?
+  status       ContentStatus @default(PUBLISHED)
+  showInMenu   Boolean       @default(false)
+  showInFooter Boolean       @default(false)
+  menuOrder    Int           @default(0)
+
+  metaTitle       String?
+  metaDescription String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorId String?
+  author   User?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([slug])
+  @@map("pages")
+}
+
+// ===========================================================================
+// TIPOS DE CORTINAS E PERSIANAS
+// ===========================================================================
+
+enum LightBlocking {
+  BAIXO // filtra pouca luz, mantem o ambiente claro
+  MEDIO // difusao equilibrada
+  ALTO // reduz fortemente a claridade
+  BLACKOUT // bloqueio praticamente total
+}
+
+model CurtainType {
+  id          String @id @default(cuid())
+  name        String
+  slug        String @unique
+  summary     String @db.Text // resumo curto usado em cards
+  description String @db.Text // descricao rica (180-250 palavras)
+
+  category      String // Cortinas, Persianas, Paineis, Especiais
+  lightBlocking LightBlocking @default(MEDIO)
+  priceRange    String?
+  maintenance   String?
+  materials     String[]      @default([])
+  advantages    String[]      @default([])
+  disadvantages String[]      @default([])
+  bestRooms     String[]      @default([])
+  whenToChoose  String        @db.Text
+  installation  String?       @db.Text
+
+  image    String?
+  imageAlt String?
+  featured Boolean       @default(false)
+  order    Int           @default(0)
+  status   ContentStatus @default(PUBLISHED)
+
+  metaTitle       String?
+  metaDescription String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@map("curtain_types")
+}
+
+// ===========================================================================
+// SERVICOS
+// ===========================================================================
+
+model Service {
+  id               String @id @default(cuid())
+  title            String
+  slug             String @unique
+  shortDescription String @db.Text
+  description      String @db.Text
+  icon             String @default("Sparkles") // nome do icone lucide-react
+  image            String?
+
+  steps        Json     @default("[]") // [{ title, description }]
+  benefits     String[] @default([])
+  faq          Json     @default("[]") // [{ question, answer }]
+  deliverables String[] @default([])
+  priceNote    String?
+
+  featured Boolean       @default(false)
+  order    Int           @default(0)
+  status   ContentStatus @default(PUBLISHED)
+
+  metaTitle       String?
+  metaDescription String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@map("services")
+}
+
+// ===========================================================================
+// BIBLIOTECA DE MIDIA
+// ===========================================================================
+
+model Media {
+  id        String   @id @default(cuid())
+  url       String
+  filename  String
+  alt       String?
+  caption   String?
+  mimeType  String   @default("image/jpeg")
+  size      Int      @default(0)
+  width     Int?
+  height    Int?
+  folder    String   @default("geral")
+  createdAt DateTime @default(now())
+
+  uploadedById String?
+  uploadedBy   User?   @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([folder])
+  @@map("media")
+}
+
+// ===========================================================================
+// CONFIGURACOES GLOBAIS (registro unico, id = "default")
+// ===========================================================================
+
+model SiteSettings {
+  id          String  @id @default("default")
+  siteName    String  @default("Guia Interativo")
+  tagline     String  @default("O guia definitivo de cortinas e persianas")
+  description String  @default("") @db.Text
+  logoUrl     String?
+  faviconUrl  String?
+  ogImage     String?
+
+  // Tema ativo: elegante-neutra | moderna-sofisticada | aconchegante-premium
+  theme String @default("elegante-neutra")
+
+  // Contato
+  whatsapp        String  @default("5511999999999")
+  whatsappMessage String  @default("Ola! Vim pelo site Guia Interativo e gostaria de tirar uma duvida sobre cortinas.")
+  email           String  @default("contato@guiainterativo.com")
+  phone           String?
+  address         String?
+  businessHours   String?
+
+  // Redes sociais
+  instagram String?
+  facebook  String?
+  pinterest String?
+  youtube   String?
+
+  // Integracoes
+  gaMeasurementId  String?
+  adsenseClientId  String?
+  adsenseEnabled   Boolean @default(false)
+  gtmId            String?
+  searchConsoleTag String?
+
+  // SEO padrao
+  defaultMetaTitle       String?
+  defaultMetaDescription String? @db.Text
+
+  updatedAt DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+// ===========================================================================
+// MENSAGENS DO FORMULARIO DE CONTATO
+// ===========================================================================
+
+enum LeadStatus {
+  NOVO
+  EM_ATENDIMENTO
+  RESPONDIDO
+  ARQUIVADO
+}
+
+model ContactMessage {
+  id        String     @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String     @db.Text
+  status    LeadStatus @default(NOVO)
+  createdAt DateTime   @default(now())
+
+  @@index([status])
+  @@map("contact_messages")
+}
+
+// ===========================================================================
+// NEWSLETTER
+// ===========================================================================
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("subscribers")
+}

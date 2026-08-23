@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" width="220" height="48" role="img" aria-label="Guia Interativo">
+  <g fill="none" stroke="#C4A77D" stroke-width="2.4" stroke-linecap="round">
+    <path d="M8 8 C 13 18, 3 30, 8 40"/>
+    <path d="M17 8 C 22 18, 12 30, 17 40"/>
+    <path d="M26 8 C 31 18, 21 30, 26 40"/>
+  </g>
+  <rect x="4" y="5" width="26" height="3" rx="1.5" fill="#2C2C2C"/>
+  <text x="44" y="24" font-family="Georgia, 'Playfair Display', serif" font-size="20" fill="#2C2C2C">Guia</text>
+  <text x="44" y="42" font-family="Inter, Helvetica, Arial, sans-serif" font-size="13" letter-spacing="3.4" fill="#C4A77D">INTERATIVO</text>
+</svg>
