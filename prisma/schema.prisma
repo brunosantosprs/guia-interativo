@@ -331,6 +331,13 @@ model SiteSettings {
   adsenseClientId  String?
   adsenseEnabled   Boolean @default(false)
   gtmId            String?
+
+  // Linhas extras do ads.txt.
+  //
+  // A linha do Google e gerada sozinha a partir de adsenseClientId. Este
+  // campo existe para redes adicionais e para linhas que o proprio AdSense
+  // pedir depois. Ver app/ads.txt/route.ts.
+  adsTxt           String? @db.Text
   searchConsoleTag String?
 
   // SEO padrao

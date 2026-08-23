@@ -38,6 +38,7 @@ const FALLBACK: SiteSettings = {
   adsenseClientId: process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || null,
   adsenseEnabled: process.env.NEXT_PUBLIC_ADSENSE_ENABLED === 'true',
   gtmId: null,
+  adsTxt: null,
   searchConsoleTag: null,
   defaultMetaTitle: 'Guia Interativo — Cortinas e Persianas',
   defaultMetaDescription:

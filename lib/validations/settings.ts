@@ -95,6 +95,31 @@ export const settingsSchema = z.object({
     .or(z.literal(''))
     .nullable()
     .optional(),
+  /**
+   * Linhas extras do ads.txt.
+   *
+   * Cada linha util segue o formato do IAB:
+   *   dominio, ID do publisher, DIRECT|RESELLER[, ID de certificacao]
+   *
+   * Uma linha malformada nao invalida o arquivo inteiro para os
+   * rastreadores, mas e ignorada em silencio — e ninguem descobre ate os
+   * anuncios pararem. Por isso a validacao acontece aqui, na hora de salvar.
+   */
+  adsTxt: z
+    .string()
+    .max(8000)
+    .refine(
+      (valor) =>
+        valor
+          .split('\n')
+          .map((linha) => linha.trim())
+          .filter((linha) => linha && !linha.startsWith('#'))
+          .every((linha) => /^[^,\s]+\s*,\s*[^,\s]+\s*,\s*(DIRECT|RESELLER)\b/i.test(linha)),
+      'Cada linha deve seguir: dominio.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0',
+    )
+    .or(z.literal(''))
+    .nullable()
+    .optional(),
   searchConsoleTag: z.string().max(200).or(z.literal('')).nullable().optional(),
 
   defaultMetaTitle: z.string().max(70).or(z.literal('')).nullable().optional(),

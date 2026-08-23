@@ -71,6 +71,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
       adsenseClientId: settings.adsenseClientId ?? '',
       adsenseEnabled: settings.adsenseEnabled,
       gtmId: settings.gtmId ?? '',
+      adsTxt: settings.adsTxt ?? '',
       searchConsoleTag: settings.searchConsoleTag ?? '',
       defaultMetaTitle: settings.defaultMetaTitle ?? '',
       defaultMetaDescription: settings.defaultMetaDescription ?? '',
@@ -78,6 +79,17 @@ export function SettingsForm({ settings }: SettingsFormProps) {
   });
 
   const values = watch();
+
+  /**
+   * Prévia da linha que /ads.txt vai servir.
+   *
+   * Mostrada porque o arquivo é gerado, não editado: sem a prévia, a única
+   * forma de conferir seria abrir /ads.txt depois de salvar.
+   */
+  const publisherId = values.adsenseClientId?.trim().replace(/^ca-/i, '') ?? '';
+  const linhaAdsTxt = /^pub-\d{10,20}$/i.test(publisherId)
+    ? `google.com, ${publisherId}, DIRECT, f08c47fec0942fa0`
+    : null;
 
   async function onSubmit(data: SettingsInput) {
     setSaving(true);
@@ -407,6 +419,44 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                 id="adsenseClientId"
                 {...register('adsenseClientId')}
                 placeholder="ca-pub-0000000000000000"
+              />
+            </Field>
+
+            <div className="rounded-md border border-border bg-surface p-4">
+              <p className="text-xs font-medium text-foreground">
+                Arquivo <code className="rounded bg-background px-1.5 py-0.5">/ads.txt</code>
+              </p>
+              {linhaAdsTxt ? (
+                <>
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                    Gerado sozinho a partir do ID acima. O site já publica:
+                  </p>
+                  <pre className="mt-2 overflow-x-auto rounded bg-background p-2.5 font-mono text-[11px] text-foreground">
+                    {linhaAdsTxt}
+                  </pre>
+                </>
+              ) : (
+                <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                  Sem o ID do cliente, <code className="rounded bg-background px-1 py-0.5">/ads.txt</code>{' '}
+                  responde 404 — que é o correto. Um arquivo vazio declararia que{' '}
+                  <strong className="font-medium text-foreground">ninguém</strong> está autorizado a
+                  vender seus anúncios, e bloquearia todos eles.
+                </p>
+              )}
+            </div>
+
+            <Field
+              label="Linhas adicionais do ads.txt"
+              htmlFor="adsTxt"
+              error={errors.adsTxt?.message}
+              hint="Uma por linha. Só para outras redes — a linha do Google já é gerada acima."
+            >
+              <Textarea
+                id="adsTxt"
+                rows={4}
+                className="font-mono text-xs"
+                placeholder="outrarede.com, 12345, RESELLER, a1b2c3d4e5f6"
+                {...register('adsTxt')}
               />
             </Field>
 

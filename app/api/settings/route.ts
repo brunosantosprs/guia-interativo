@@ -37,7 +37,17 @@ export async function PATCH(request: Request) {
       create: { id: 'default', ...clean },
     });
 
-    revalidateContent(['/', '/blog', '/tipos-de-cortinas', '/servicos', '/sobre', '/contato']);
+    // /ads.txt entra na lista porque e gerado a partir do ID do AdSense:
+    // sem revalidar, o arquivo continuaria servindo o publisher antigo.
+    revalidateContent([
+      '/',
+      '/blog',
+      '/tipos-de-cortinas',
+      '/servicos',
+      '/sobre',
+      '/contato',
+      '/ads.txt',
+    ]);
 
     return ok(settings, 'Configurações salvas.');
   } catch (error) {

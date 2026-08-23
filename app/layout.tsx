@@ -88,6 +88,17 @@ export async function generateMetadata(): Promise<Metadata> {
     verification: settings.searchConsoleTag
       ? { google: settings.searchConsoleTag }
       : undefined,
+    /**
+     * Meta tag de propriedade do AdSense.
+     *
+     * Sai sempre que houver ID do cliente, mesmo com os anuncios
+     * desativados: a verificacao acontece ANTES da aprovacao, justamente
+     * quando "Exibir anuncios" ainda esta desligado. Amarrar a tag ao
+     * switch impediria o site de ser aprovado.
+     */
+    other: settings.adsenseClientId
+      ? { 'google-adsense-account': settings.adsenseClientId }
+      : {},
     category: 'home improvement',
   };
 }
