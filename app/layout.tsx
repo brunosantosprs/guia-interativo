@@ -4,7 +4,8 @@ import './globals.css';
 import { getSettings } from '@/lib/settings';
 import { SITE } from '@/lib/constants';
 import { Analytics } from '@/components/shared/analytics';
-import { AdSenseScript } from '@/components/shared/adsense';
+import { AdProviderScript } from '@/components/shared/ad-slot';
+import { getAdConfig } from '@/lib/ads';
 import { Toaster } from '@/components/ui/toaster';
 
 /**
@@ -115,6 +116,7 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const settings = await getSettings();
+  const ads = getAdConfig(settings);
 
   return (
     <html
@@ -128,8 +130,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Pré-conexões que reduzem a latência dos scripts do Google */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {settings.adsenseEnabled && settings.adsenseClientId ? (
+        {ads.provider === 'adsense' ? (
           <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+        ) : null}
+        {ads.provider === 'admanager' ? (
+          <link rel="preconnect" href="https://securepubads.g.doubleclick.net" />
         ) : null}
       </head>
       <body className="min-h-dvh bg-background text-foreground">
@@ -145,10 +150,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Toaster />
 
         <Analytics measurementId={settings.gaMeasurementId} gtmId={settings.gtmId} />
-        <AdSenseScript
-          clientId={settings.adsenseClientId}
-          enabled={settings.adsenseEnabled}
-        />
+        <AdProviderScript ads={ads} />
       </body>
     </html>
   );

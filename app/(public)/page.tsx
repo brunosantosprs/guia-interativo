@@ -4,11 +4,12 @@ import type { Metadata } from 'next';
 import { ArrowRight, Blinds, Compass, Ruler, Sparkles, Sun } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { getSettings } from '@/lib/settings';
-import { ADSENSE_SLOTS } from '@/lib/constants';
+
 import { Button } from '@/components/ui/button';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { FadeIn, Stagger, StaggerItem } from '@/components/shared/motion';
-import { AdSlot } from '@/components/shared/adsense';
+import { AdSlot } from '@/components/shared/ad-slot';
+import { getAdConfig } from '@/lib/ads';
 import { Icon } from '@/components/shared/icon';
 import { CurtainCard } from '@/components/cortinas/curtain-card';
 import { PostCard } from '@/components/blog/post-card';
@@ -160,6 +161,8 @@ const DECISION_STEPS = [
 export default async function HomePage() {
   const [settings, data] = await Promise.all([getSettings(), getHomeData()]);
 
+  const ads = getAdConfig(settings);
+
   return (
     <>
       {/* ================= HERO ================= */}
@@ -295,9 +298,8 @@ export default async function HomePage() {
       {/* ================= ANÚNCIO ================= */}
       <div className="container py-12">
         <AdSlot
-          slot={ADSENSE_SLOTS.topBanner}
-          clientId={settings.adsenseClientId}
-          enabled={settings.adsenseEnabled}
+          position="topBanner"
+          ads={ads}
           format="horizontal"
           minHeight={120}
         />

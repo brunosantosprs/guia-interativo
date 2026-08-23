@@ -122,23 +122,35 @@ export const LEAD_STATUS_LABELS = {
 } as const;
 
 /**
- * Slots do Google AdSense.
- * Os IDs abaixo sao placeholders: substitua pelos slots reais gerados no
- * painel do AdSense apos a aprovacao da conta. Enquanto
- * NEXT_PUBLIC_ADSENSE_ENABLED for "false", nenhum script e carregado.
+ * Posicoes de anuncio do site.
+ *
+ * Cada posicao guarda o endereco nos dois provedores, lado a lado. Antes
+ * havia so o slot do AdSense e o nome da posicao vivia no call site; com
+ * dois provedores isso significaria repetir a escolha em onze arquivos e
+ * torcer para nao divergirem.
+ *
+ * adsenseSlot   — ID do bloco gerado no painel do AdSense (so numeros)
+ * adManagerUnit — nome da unidade no Ad Manager, SEM o codigo de rede.
+ *                 O caminho final vira /<codigo-de-rede>/<unidade>.
+ *
+ * Os valores abaixo sao exemplos. Substitua pelos reais depois da
+ * aprovacao — ate la nenhum script de anuncio e carregado.
  */
-export const ADSENSE_SLOTS = {
+export const AD_POSITIONS = {
   /** Faixa horizontal logo abaixo do cabecalho de listagens. */
-  topBanner: '1111111111',
+  topBanner: { adsenseSlot: '1111111111', adManagerUnit: 'guiainterativo_top_banner' },
   /** Bloco no meio do corpo do artigo (in-article). */
-  inArticle: '2222222222',
+  inArticle: { adsenseSlot: '2222222222', adManagerUnit: 'guiainterativo_in_article' },
   /** Bloco lateral fixo em telas grandes. */
-  sidebar: '3333333333',
+  sidebar: { adsenseSlot: '3333333333', adManagerUnit: 'guiainterativo_sidebar' },
   /** Bloco antes do rodape / lista de relacionados. */
-  footer: '4444444444',
+  footer: { adsenseSlot: '4444444444', adManagerUnit: 'guiainterativo_footer' },
   /** Grade de conteudo entre cards de listagem. */
-  inFeed: '5555555555',
+  inFeed: { adsenseSlot: '5555555555', adManagerUnit: 'guiainterativo_in_feed' },
 } as const;
+
+/** Nome de uma posicao de anuncio: topBanner, inArticle, sidebar... */
+export type AdPosition = keyof typeof AD_POSITIONS;
 
 /** Paginação padrão. */
 export const POSTS_PER_PAGE = 9;

@@ -1,13 +1,12 @@
 import { markdownToHtml, splitHtmlAtParagraph } from '@/lib/markdown';
-import { AdSlot } from '@/components/shared/adsense';
-import { ADSENSE_SLOTS } from '@/lib/constants';
+import { AdSlot } from '@/components/shared/ad-slot';
+import type { AdConfig } from '@/lib/ads';
 import { cn } from '@/lib/utils';
 
 interface PostContentProps {
   /** Conteúdo em markdown vindo do banco. */
   content: string;
-  adsenseClientId?: string | null;
-  adsenseEnabled?: boolean;
+  ads: AdConfig;
   /** Insere o bloco in-article após este número de parágrafos. */
   adAfterParagraph?: number;
   className?: string;
@@ -22,8 +21,7 @@ interface PostContentProps {
  */
 export function PostContent({
   content,
-  adsenseClientId,
-  adsenseEnabled,
+  ads,
   adAfterParagraph = 4,
   className,
 }: PostContentProps) {
@@ -37,9 +35,8 @@ export function PostContent({
       {secondHalf ? (
         <>
           <AdSlot
-            slot={ADSENSE_SLOTS.inArticle}
-            clientId={adsenseClientId}
-            enabled={adsenseEnabled}
+            position="inArticle"
+            ads={ads}
             format="fluid"
             minHeight={260}
             className="my-10"

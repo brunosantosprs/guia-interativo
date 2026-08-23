@@ -235,12 +235,12 @@ model CurtainType {
 // ===========================================================================
 
 model Service {
-  id               String @id @default(cuid())
+  id               String  @id @default(cuid())
   title            String
-  slug             String @unique
-  shortDescription String @db.Text
-  description      String @db.Text
-  icon             String @default("Sparkles") // nome do icone lucide-react
+  slug             String  @unique
+  shortDescription String  @db.Text
+  description      String  @db.Text
+  icon             String  @default("Sparkles") // nome do icone lucide-react
   image            String?
 
   steps        Json     @default("[]") // [{ title, description }]
@@ -327,10 +327,24 @@ model SiteSettings {
   youtube   String?
 
   // Integracoes
-  gaMeasurementId  String?
-  adsenseClientId  String?
-  adsenseEnabled   Boolean @default(false)
-  gtmId            String?
+  gaMeasurementId String?
+  gtmId           String?
+
+  // Provedor de anuncios ativo: none | adsense | admanager
+  //
+  // Exclusivo de proposito. AdSense e Ad Manager preenchendo o mesmo slot
+  // se atrapalham: o GPT define o espaco e o AdSense tenta preencher o
+  // mesmo <ins>, e o resultado e slot vazio ou anuncio duplicado. Fora que
+  // o proprio Ad Manager ja usa o AdSense como fonte de demanda — rodar os
+  // dois lado a lado nao aumenta receita, so cria conflito.
+  adProvider String @default("none")
+
+  // AdSense — ID no formato ca-pub-0000000000000000
+  adsenseClientId String?
+
+  // Ad Manager — codigo de rede, so numeros (ex.: 21234567890).
+  // As unidades ficam em lib/constants.ts, em AD_POSITIONS.
+  adManagerNetworkCode String?
 
   // Linhas extras do ads.txt.
   //

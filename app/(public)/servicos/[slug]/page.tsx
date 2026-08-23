@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { ArrowRight, CheckCircle2, Package } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { getSettings } from '@/lib/settings';
-import { ADSENSE_SLOTS } from '@/lib/constants';
+
 import { whatsappLink } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,7 +15,8 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
-import { AdSlot } from '@/components/shared/adsense';
+import { AdSlot } from '@/components/shared/ad-slot';
+import { getAdConfig } from '@/lib/ads';
 import { Icon } from '@/components/shared/icon';
 import { FadeIn } from '@/components/shared/motion';
 import {
@@ -65,6 +66,8 @@ export async function generateMetadata({ params }: SlugParams): Promise<Metadata
 
 export default async function ServicoPage({ params }: SlugParams) {
   const [settings, service] = await Promise.all([getSettings(), getService(params.slug)]);
+
+  const ads = getAdConfig(settings);
 
   if (!service) notFound();
 
@@ -195,9 +198,8 @@ export default async function ServicoPage({ params }: SlugParams) {
             ) : null}
 
             <AdSlot
-              slot={ADSENSE_SLOTS.inArticle}
-              clientId={settings.adsenseClientId}
-              enabled={settings.adsenseEnabled}
+              position="inArticle"
+              ads={ads}
               format="fluid"
               minHeight={260}
               className="my-14"
@@ -259,9 +261,8 @@ export default async function ServicoPage({ params }: SlugParams) {
               ) : null}
 
               <AdSlot
-                slot={ADSENSE_SLOTS.sidebar}
-                clientId={settings.adsenseClientId}
-                enabled={settings.adsenseEnabled}
+                position="sidebar"
+                ads={ads}
                 format="rectangle"
                 minHeight={600}
                 className="hidden lg:block"

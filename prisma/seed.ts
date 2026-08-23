@@ -197,7 +197,7 @@ async function main() {
       businessHours: 'Segunda a sexta, das 9h às 18h',
       gaMeasurementId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || null,
       adsenseClientId: process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || null,
-      adsenseEnabled: process.env.NEXT_PUBLIC_ADSENSE_ENABLED === 'true',
+      adProvider: process.env.NEXT_PUBLIC_ADSENSE_ENABLED === 'true' ? 'adsense' : 'none',
       defaultMetaTitle: 'Guia Interativo — Cortinas e Persianas',
       defaultMetaDescription:
         'Guias técnicos, comparativos e catálogo completo de tipos de cortinas e persianas. Escolha com critério, meça certo e instale sem erro.',

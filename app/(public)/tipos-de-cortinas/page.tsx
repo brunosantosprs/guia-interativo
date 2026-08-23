@@ -3,10 +3,11 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { getSettings } from '@/lib/settings';
-import { ADSENSE_SLOTS, CURTAIN_CATEGORIES, LIGHT_BLOCKING_LABELS } from '@/lib/constants';
+import { CURTAIN_CATEGORIES, LIGHT_BLOCKING_LABELS } from '@/lib/constants';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
-import { AdSlot } from '@/components/shared/adsense';
+import { AdSlot } from '@/components/shared/ad-slot';
+import { getAdConfig } from '@/lib/ads';
 import { JsonLd, breadcrumbSchema } from '@/components/shared/json-ld';
 import { CurtainFilters } from '@/components/cortinas/curtain-filters';
 import { Button } from '@/components/ui/button';
@@ -62,6 +63,8 @@ async function getCurtains() {
 export default async function TiposDeCortinasPage() {
   const [settings, curtains] = await Promise.all([getSettings(), getCurtains()]);
 
+  const ads = getAdConfig(settings);
+
   const crumbs = [{ label: 'Tipos de Cortinas', href: '/tipos-de-cortinas' }];
 
   // Categorias efetivamente presentes, na ordem canônica definida em constants
@@ -116,9 +119,8 @@ export default async function TiposDeCortinasPage() {
       {/* Anúncio */}
       <div className="container pb-4">
         <AdSlot
-          slot={ADSENSE_SLOTS.inFeed}
-          clientId={settings.adsenseClientId}
-          enabled={settings.adsenseEnabled}
+          position="inFeed"
+          ads={ads}
           format="horizontal"
           minHeight={120}
         />

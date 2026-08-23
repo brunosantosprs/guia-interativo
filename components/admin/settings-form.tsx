@@ -10,18 +10,24 @@ import {
   settingsSchema,
   type SettingsInput,
 } from '@/lib/validations/settings';
-import { THEMES } from '@/lib/constants';
+import { AD_POSITIONS, THEMES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Field, FormSection } from '@/components/admin/form-fields';
 import { ImageField } from '@/components/admin/image-field';
 import { useToast } from '@/hooks/use-toast';
 import type { SiteSettings } from '@prisma/client';
+
+/** Opcoes do seletor de provedor de anuncios. */
+const PROVEDORES_DE_ANUNCIO = [
+  { value: 'none' as const, label: 'Nenhum', hint: 'Espacos reservados, sem script' },
+  { value: 'adsense' as const, label: 'AdSense', hint: 'Tamanho automatico, mais simples' },
+  { value: 'admanager' as const, label: 'Ad Manager', hint: 'Controle de unidades e demanda' },
+];
 
 interface SettingsFormProps {
   settings: SiteSettings;
@@ -69,7 +75,8 @@ export function SettingsForm({ settings }: SettingsFormProps) {
       youtube: settings.youtube ?? '',
       gaMeasurementId: settings.gaMeasurementId ?? '',
       adsenseClientId: settings.adsenseClientId ?? '',
-      adsenseEnabled: settings.adsenseEnabled,
+      adProvider: (settings.adProvider ?? 'none') as 'none' | 'adsense' | 'admanager',
+      adManagerNetworkCode: settings.adManagerNetworkCode ?? '',
       gtmId: settings.gtmId ?? '',
       adsTxt: settings.adsTxt ?? '',
       searchConsoleTag: settings.searchConsoleTag ?? '',
@@ -392,28 +399,48 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           </FormSection>
 
           <FormSection
-            title="Google AdSense"
-            description="Os slots de anúncio já estão posicionados no site. Enquanto o AdSense estiver desativado, aparecem apenas espaços reservados discretos."
+            title="Anúncios"
+            description="Os espaços de anúncio já estão posicionados no site. Sem provedor ativo, aparecem apenas espaços reservados discretos."
           >
-            <div className="flex items-center justify-between gap-4 rounded-md border border-border p-4">
-              <div>
-                <Label htmlFor="adsenseEnabled">Exibir anúncios</Label>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Ative somente após a aprovação da conta no AdSense.
-                </p>
+            <div className="space-y-2">
+              <Label>Provedor</Label>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {PROVEDORES_DE_ANUNCIO.map((provedor) => (
+                  <button
+                    key={provedor.value}
+                    type="button"
+                    onClick={() => setValue('adProvider', provedor.value)}
+                    className={cn(
+                      'rounded-md border p-3 text-left transition-colors',
+                      values.adProvider === provedor.value
+                        ? 'border-accent bg-accent/5'
+                        : 'border-border hover:border-accent/50',
+                    )}
+                  >
+                    <span className="block text-sm font-medium">{provedor.label}</span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
+                      {provedor.hint}
+                    </span>
+                  </button>
+                ))}
               </div>
-              <Switch
-                id="adsenseEnabled"
-                checked={values.adsenseEnabled}
-                onCheckedChange={(checked) => setValue('adsenseEnabled', checked)}
-              />
+              <p className="text-xs text-muted-foreground">
+                Só um por vez. Os dois preenchendo o mesmo espaço se atrapalham — e o Ad Manager
+                já usa o AdSense como fonte de demanda, então rodar ambos não aumenta receita.
+              </p>
             </div>
 
+            {/* Vale para os dois provedores: no Ad Manager o ID de editor é o
+                mesmo ca-pub-, e é ele que autoriza o Google no ads.txt. */}
             <Field
-              label="ID do cliente"
+              label="ID de editor do Google"
               htmlFor="adsenseClientId"
               error={errors.adsenseClientId?.message}
-              hint="Formato ca-pub-0000000000000000."
+              hint={
+                values.adProvider === 'admanager'
+                  ? 'Formato ca-pub-0000000000000000. No Ad Manager, em Administrador → Configurações da rede. Sem ele o ads.txt não sai.'
+                  : 'Formato ca-pub-0000000000000000. Preencha antes da aprovação — é assim que o Google verifica o site.'
+              }
             >
               <Input
                 id="adsenseClientId"
@@ -421,6 +448,38 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                 placeholder="ca-pub-0000000000000000"
               />
             </Field>
+
+            {values.adProvider === 'admanager' ? (
+              <>
+                <Field
+                  label="Código de rede (Ad Manager)"
+                  htmlFor="adManagerNetworkCode"
+                  error={errors.adManagerNetworkCode?.message}
+                  hint="Só números. Aparece no Ad Manager em Administrador → Configurações globais."
+                >
+                  <Input
+                    id="adManagerNetworkCode"
+                    {...register('adManagerNetworkCode')}
+                    placeholder="21234567890"
+                  />
+                </Field>
+
+                <div className="rounded-md border border-border bg-surface p-4">
+                  <p className="text-xs font-medium text-foreground">Unidades esperadas</p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                    Crie no Ad Manager unidades com estes nomes. Sem elas o espaço fica em branco:
+                  </p>
+                  <pre className="mt-2 overflow-x-auto rounded bg-background p-2.5 font-mono text-[11px] text-foreground">
+                    {Object.values(AD_POSITIONS)
+                      .map(
+                        (posicao) =>
+                          `/${values.adManagerNetworkCode || '<codigo-de-rede>'}/${posicao.adManagerUnit}`,
+                      )
+                      .join('\n')}
+                  </pre>
+                </div>
+              </>
+            ) : null}
 
             <div className="rounded-md border border-border bg-surface p-4">
               <p className="text-xs font-medium text-foreground">
@@ -463,10 +522,11 @@ export function SettingsForm({ settings }: SettingsFormProps) {
             <div className="flex gap-3 rounded-md border border-border bg-surface p-4 text-xs leading-relaxed text-muted-foreground">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden />
               <p>
-                Os IDs dos blocos de anúncio ficam em{' '}
+                Os endereços dos blocos ficam em{' '}
                 <code className="rounded bg-background px-1.5 py-0.5">lib/constants.ts</code>, na
-                constante <code className="rounded bg-background px-1.5 py-0.5">ADSENSE_SLOTS</code>
-                . Substitua os valores de exemplo pelos slots reais gerados no painel do AdSense.
+                constante <code className="rounded bg-background px-1.5 py-0.5">AD_POSITIONS</code>
+                . Cada posição guarda o slot do AdSense e a unidade do Ad Manager lado a lado —
+                substitua os valores de exemplo pelos reais.
               </p>
             </div>
           </FormSection>

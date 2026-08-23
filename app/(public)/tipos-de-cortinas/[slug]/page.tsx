@@ -14,11 +14,12 @@ import {
 } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { getSettings } from '@/lib/settings';
-import { ADSENSE_SLOTS, LIGHT_BLOCKING_LABELS, SITE } from '@/lib/constants';
+import { LIGHT_BLOCKING_LABELS, SITE } from '@/lib/constants';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
-import { AdSlot } from '@/components/shared/adsense';
+import { AdSlot } from '@/components/shared/ad-slot';
+import { getAdConfig } from '@/lib/ads';
 import { JsonLd, breadcrumbSchema } from '@/components/shared/json-ld';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { LightMeter } from '@/components/cortinas/light-meter';
@@ -73,6 +74,8 @@ export async function generateMetadata({ params }: SlugParams): Promise<Metadata
 
 export default async function CurtainTypePage({ params }: SlugParams) {
   const [settings, curtain] = await Promise.all([getSettings(), getCurtain(params.slug)]);
+
+  const ads = getAdConfig(settings);
 
   if (!curtain) notFound();
 
@@ -214,9 +217,8 @@ export default async function CurtainTypePage({ params }: SlugParams) {
 
             {/* Anúncio in-article */}
             <AdSlot
-              slot={ADSENSE_SLOTS.inArticle}
-              clientId={settings.adsenseClientId}
-              enabled={settings.adsenseEnabled}
+              position="inArticle"
+              ads={ads}
               format="fluid"
               minHeight={260}
               className="my-12"
@@ -316,9 +318,8 @@ export default async function CurtainTypePage({ params }: SlugParams) {
               </div>
 
               <AdSlot
-                slot={ADSENSE_SLOTS.sidebar}
-                clientId={settings.adsenseClientId}
-                enabled={settings.adsenseEnabled}
+                position="sidebar"
+                ads={ads}
                 format="rectangle"
                 minHeight={600}
                 className="hidden lg:block"

@@ -20,9 +20,7 @@ export function cnpjValido(entrada: string): boolean {
   if (/^(\d)\1{13}$/.test(n)) return false; // 00000000000000 e afins
 
   const digito = (base: string, pesos: number[]): number => {
-    const soma = base
-      .split('')
-      .reduce((acc, d, i) => acc + Number(d) * pesos[i], 0);
+    const soma = base.split('').reduce((acc, d, i) => acc + Number(d) * pesos[i], 0);
     const resto = soma % 11;
     return resto < 2 ? 0 : 11 - resto;
   };
@@ -43,88 +41,118 @@ export function formatarCNPJ(entrada: string): string {
     .replace(/(\d{4})(\d)/, '$1-$2');
 }
 
-export const settingsSchema = z.object({
-  siteName: z.string().min(2, 'Informe o nome do site').max(80),
-  tagline: z.string().max(160).default(''),
-  description: z.string().max(400).default(''),
-  logoUrl: imageRefSchema,
-  faviconUrl: imageRefSchema,
-  ogImage: imageRefSchema,
+export const settingsSchema = z
+  .object({
+    siteName: z.string().min(2, 'Informe o nome do site').max(80),
+    tagline: z.string().max(160).default(''),
+    description: z.string().max(400).default(''),
+    logoUrl: imageRefSchema,
+    faviconUrl: imageRefSchema,
+    ogImage: imageRefSchema,
 
-  theme: z.enum(['elegante-neutra', 'moderna-sofisticada', 'aconchegante-premium']),
+    theme: z.enum(['elegante-neutra', 'moderna-sofisticada', 'aconchegante-premium']),
 
-  // Identificação da empresa
-  companyName: z.string().max(140).or(z.literal('')).nullable().optional(),
-  cnpj: z
-    .string()
-    .refine((v) => v === '' || cnpjValido(v), 'CNPJ inválido — confira os dígitos')
-    .or(z.literal(''))
-    .nullable()
-    .optional(),
+    // Identificação da empresa
+    companyName: z.string().max(140).or(z.literal('')).nullable().optional(),
+    cnpj: z
+      .string()
+      .refine((v) => v === '' || cnpjValido(v), 'CNPJ inválido — confira os dígitos')
+      .or(z.literal(''))
+      .nullable()
+      .optional(),
 
-  whatsapp: z
-    .string()
-    .regex(/^\d{12,13}$/, 'Use apenas números com DDI e DDD (ex.: 5511999999999)'),
-  whatsappMessage: z.string().max(300).default(''),
-  email: z.string().email('E-mail inválido'),
-  phone: z.string().max(40).or(z.literal('')).nullable().optional(),
-  address: z.string().max(240).or(z.literal('')).nullable().optional(),
-  businessHours: z.string().max(240).or(z.literal('')).nullable().optional(),
+    whatsapp: z
+      .string()
+      .regex(/^\d{12,13}$/, 'Use apenas números com DDI e DDD (ex.: 5511999999999)'),
+    whatsappMessage: z.string().max(300).default(''),
+    email: z.string().email('E-mail inválido'),
+    phone: z.string().max(40).or(z.literal('')).nullable().optional(),
+    address: z.string().max(240).or(z.literal('')).nullable().optional(),
+    businessHours: z.string().max(240).or(z.literal('')).nullable().optional(),
 
-  instagram: optionalUrl,
-  facebook: optionalUrl,
-  pinterest: optionalUrl,
-  youtube: optionalUrl,
+    instagram: optionalUrl,
+    facebook: optionalUrl,
+    pinterest: optionalUrl,
+    youtube: optionalUrl,
 
-  gaMeasurementId: z
-    .string()
-    .regex(/^G-[A-Z0-9]{6,}$/, 'Formato esperado: G-XXXXXXXXXX')
-    .or(z.literal(''))
-    .nullable()
-    .optional(),
-  adsenseClientId: z
-    .string()
-    .regex(/^ca-pub-\d{10,20}$/, 'Formato esperado: ca-pub-0000000000000000')
-    .or(z.literal(''))
-    .nullable()
-    .optional(),
-  adsenseEnabled: z.boolean().default(false),
-  gtmId: z
-    .string()
-    .regex(/^GTM-[A-Z0-9]{4,}$/, 'Formato esperado: GTM-XXXXXXX')
-    .or(z.literal(''))
-    .nullable()
-    .optional(),
+    gaMeasurementId: z
+      .string()
+      .regex(/^G-[A-Z0-9]{6,}$/, 'Formato esperado: G-XXXXXXXXXX')
+      .or(z.literal(''))
+      .nullable()
+      .optional(),
+    adsenseClientId: z
+      .string()
+      .regex(/^ca-pub-\d{10,20}$/, 'Formato esperado: ca-pub-0000000000000000')
+      .or(z.literal(''))
+      .nullable()
+      .optional(),
+    adProvider: z.enum(['none', 'adsense', 'admanager']).default('none'),
+    adManagerNetworkCode: z
+      .string()
+      .regex(/^\d{6,20}$/, 'O código de rede tem apenas números (ex.: 21234567890)')
+      .or(z.literal(''))
+      .nullable()
+      .optional(),
+    gtmId: z
+      .string()
+      .regex(/^GTM-[A-Z0-9]{4,}$/, 'Formato esperado: GTM-XXXXXXX')
+      .or(z.literal(''))
+      .nullable()
+      .optional(),
+    /**
+     * Linhas extras do ads.txt.
+     *
+     * Cada linha util segue o formato do IAB:
+     *   dominio, ID do publisher, DIRECT|RESELLER[, ID de certificacao]
+     *
+     * Uma linha malformada nao invalida o arquivo inteiro para os
+     * rastreadores, mas e ignorada em silencio — e ninguem descobre ate os
+     * anuncios pararem. Por isso a validacao acontece aqui, na hora de salvar.
+     */
+    adsTxt: z
+      .string()
+      .max(8000)
+      .refine(
+        (valor) =>
+          valor
+            .split('\n')
+            .map((linha) => linha.trim())
+            .filter((linha) => linha && !linha.startsWith('#'))
+            .every((linha) => /^[^,\s]+\s*,\s*[^,\s]+\s*,\s*(DIRECT|RESELLER)\b/i.test(linha)),
+        'Cada linha deve seguir: dominio.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0',
+      )
+      .or(z.literal(''))
+      .nullable()
+      .optional(),
+    searchConsoleTag: z.string().max(200).or(z.literal('')).nullable().optional(),
+
+    defaultMetaTitle: z.string().max(70).or(z.literal('')).nullable().optional(),
+    defaultMetaDescription: z.string().max(170).or(z.literal('')).nullable().optional(),
+  })
   /**
-   * Linhas extras do ads.txt.
-   *
-   * Cada linha util segue o formato do IAB:
-   *   dominio, ID do publisher, DIRECT|RESELLER[, ID de certificacao]
-   *
-   * Uma linha malformada nao invalida o arquivo inteiro para os
-   * rastreadores, mas e ignorada em silencio — e ninguem descobre ate os
-   * anuncios pararem. Por isso a validacao acontece aqui, na hora de salvar.
+   * Escolher um provedor sem informar o identificador dele deixaria o site
+   * tentando servir anuncios de uma conta que nao existe. O sintoma seria
+   * espaco em branco no lugar do anuncio, sem erro em lugar nenhum — por
+   * isso a checagem acontece aqui, na hora de salvar, e nao em producao.
    */
-  adsTxt: z
-    .string()
-    .max(8000)
-    .refine(
-      (valor) =>
-        valor
-          .split('\n')
-          .map((linha) => linha.trim())
-          .filter((linha) => linha && !linha.startsWith('#'))
-          .every((linha) => /^[^,\s]+\s*,\s*[^,\s]+\s*,\s*(DIRECT|RESELLER)\b/i.test(linha)),
-      'Cada linha deve seguir: dominio.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0',
-    )
-    .or(z.literal(''))
-    .nullable()
-    .optional(),
-  searchConsoleTag: z.string().max(200).or(z.literal('')).nullable().optional(),
+  .superRefine((valor, ctx) => {
+    if (valor.adProvider === 'adsense' && !valor.adsenseClientId?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['adsenseClientId'],
+        message: 'Informe o ID do cliente para ativar o AdSense',
+      });
+    }
 
-  defaultMetaTitle: z.string().max(70).or(z.literal('')).nullable().optional(),
-  defaultMetaDescription: z.string().max(170).or(z.literal('')).nullable().optional(),
-});
+    if (valor.adProvider === 'admanager' && !valor.adManagerNetworkCode?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['adManagerNetworkCode'],
+        message: 'Informe o código de rede para ativar o Ad Manager',
+      });
+    }
+  });
 
 export type SettingsInput = z.infer<typeof settingsSchema>;
 

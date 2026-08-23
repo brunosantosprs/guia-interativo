@@ -4,11 +4,12 @@ import Image from 'next/image';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { getSettings } from '@/lib/settings';
-import { ADSENSE_SLOTS } from '@/lib/constants';
+
 import { whatsappLink } from '@/lib/utils';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
-import { AdSlot } from '@/components/shared/adsense';
+import { AdSlot } from '@/components/shared/ad-slot';
+import { getAdConfig } from '@/lib/ads';
 import { JsonLd, breadcrumbSchema } from '@/components/shared/json-ld';
 import { Icon } from '@/components/shared/icon';
 import { FadeIn } from '@/components/shared/motion';
@@ -36,6 +37,8 @@ async function getServices() {
 
 export default async function ServicosPage() {
   const [settings, services] = await Promise.all([getSettings(), getServices()]);
+
+  const ads = getAdConfig(settings);
   const crumbs = [{ label: 'Serviços', href: '/servicos' }];
 
   return (
@@ -159,9 +162,8 @@ export default async function ServicosPage() {
         </div>
 
         <AdSlot
-          slot={ADSENSE_SLOTS.footer}
-          clientId={settings.adsenseClientId}
-          enabled={settings.adsenseEnabled}
+          position="footer"
+          ads={ads}
           format="horizontal"
           minHeight={120}
           className="mt-20"

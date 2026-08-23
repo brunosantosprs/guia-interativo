@@ -2,11 +2,12 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { getSettings } from '@/lib/settings';
-import { ADSENSE_SLOTS, POSTS_PER_PAGE } from '@/lib/constants';
+import { POSTS_PER_PAGE } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
-import { AdSlot } from '@/components/shared/adsense';
+import { AdSlot } from '@/components/shared/ad-slot';
+import { getAdConfig } from '@/lib/ads';
 import { JsonLd, breadcrumbSchema } from '@/components/shared/json-ld';
 import { PostCard } from '@/components/blog/post-card';
 import { Button } from '@/components/ui/button';
@@ -76,6 +77,8 @@ export default async function BlogPage({ searchParams }: SearchParams) {
     getSettings(),
     getBlogData(categorySlug, page),
   ]);
+
+  const ads = getAdConfig(settings);
 
   const totalPages = Math.max(1, Math.ceil(total / POSTS_PER_PAGE));
   const activeCategory = categories.find((category) => category.slug === categorySlug);
@@ -194,9 +197,8 @@ export default async function BlogPage({ searchParams }: SearchParams) {
         )}
 
         <AdSlot
-          slot={ADSENSE_SLOTS.footer}
-          clientId={settings.adsenseClientId}
-          enabled={settings.adsenseEnabled}
+          position="footer"
+          ads={ads}
           format="horizontal"
           minHeight={120}
           className="mt-16"

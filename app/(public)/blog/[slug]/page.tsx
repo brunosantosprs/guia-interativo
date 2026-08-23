@@ -5,13 +5,14 @@ import { notFound } from 'next/navigation';
 import { ArrowRight, Clock, CalendarDays } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { getSettings } from '@/lib/settings';
-import { ADSENSE_SLOTS } from '@/lib/constants';
+
 import { absoluteUrl, formatDate, initials, toISO } from '@/lib/utils';
 import { extractHeadings } from '@/lib/markdown';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
-import { AdSlot } from '@/components/shared/adsense';
+import { AdSlot } from '@/components/shared/ad-slot';
+import { getAdConfig } from '@/lib/ads';
 import { JsonLd, articleSchema, breadcrumbSchema } from '@/components/shared/json-ld';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { PostContent } from '@/components/blog/post-content';
@@ -86,6 +87,8 @@ export async function generateMetadata({ params }: SlugParams): Promise<Metadata
 
 export default async function BlogPostPage({ params }: SlugParams) {
   const [settings, post] = await Promise.all([getSettings(), getPost(params.slug)]);
+
+  const ads = getAdConfig(settings);
 
   if (!post) notFound();
 
@@ -224,8 +227,7 @@ export default async function BlogPostPage({ params }: SlugParams) {
           <article className="lg:col-span-6">
             <PostContent
               content={post.content}
-              adsenseClientId={settings.adsenseClientId}
-              adsenseEnabled={settings.adsenseEnabled}
+              ads={ads}
             />
 
             {/* Tags */}
@@ -279,9 +281,8 @@ export default async function BlogPostPage({ params }: SlugParams) {
           <aside className="lg:col-span-3">
             <div className="space-y-8 lg:sticky lg:top-24">
               <AdSlot
-                slot={ADSENSE_SLOTS.sidebar}
-                clientId={settings.adsenseClientId}
-                enabled={settings.adsenseEnabled}
+                position="sidebar"
+                ads={ads}
                 format="rectangle"
                 minHeight={600}
               />
