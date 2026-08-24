@@ -18,3 +18,6 @@ public/uploads
 premium-para-trocar.json
 *.local.json
 /tmp/
+
+.vercel
+.env*
