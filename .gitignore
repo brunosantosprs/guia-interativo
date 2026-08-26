@@ -21,3 +21,6 @@ premium-para-trocar.json
 
 .vercel
 .env*
+
+# Segredos puxados da Vercel (vercel env pull / scripts) — nunca versionar
+vercel.env
