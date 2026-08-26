@@ -81,9 +81,12 @@ export function stripMarkdown(markdown: string): string {
 
 /** Monta a URL absoluta do site a partir de um caminho relativo. */
 export function absoluteUrl(path = '/'): string {
-  const base =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ??
-    'https://guiainterativo.com';
+  // `||` cobre tambem o caso de NEXT_PUBLIC_SITE_URL vir como string vazia
+  // (comum na Vercel); aplica o padrao antes de remover a barra final.
+  const base = (process.env.NEXT_PUBLIC_SITE_URL || 'https://guiainterativo.com').replace(
+    /\/$/,
+    '',
+  );
   return `${base}${path.startsWith('/') ? path : `/${path}`}`;
 }
 

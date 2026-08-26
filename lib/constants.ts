@@ -5,9 +5,13 @@
  */
 
 export const SITE = {
-  name: process.env.NEXT_PUBLIC_SITE_NAME ?? 'Guia Interativo',
+  // `||` (e nao `??`) de proposito: na Vercel estas variaveis podem chegar
+  // como string vazia, que o `??` deixaria passar. Com string vazia,
+  // `new URL(SITE.url)` em app/layout.tsx quebra o build inteiro na
+  // pre-renderizacao ("TypeError: Invalid URL"). O `||` cai no padrao.
+  name: process.env.NEXT_PUBLIC_SITE_NAME || 'Guia Interativo',
   domain: 'guiainterativo.com',
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://guiainterativo.com',
+  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://guiainterativo.com',
   locale: 'pt_BR',
   language: 'pt-BR',
   tagline: 'O guia definitivo de cortinas e persianas',
