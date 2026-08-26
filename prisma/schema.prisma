@@ -346,6 +346,15 @@ model SiteSettings {
   // As unidades ficam em lib/constants.ts, em AD_POSITIONS.
   adManagerNetworkCode String?
 
+  // Blocos de anuncio gerenciaveis pelo painel (estilo Ad Inserter do
+  // WordPress). Lista de objetos, um por bloco, definida na aba Anuncios:
+  //   { id, name, enabled, type: adsense|html, adsenseSlot?, format?, html?,
+  //     placement: paragraph|manual, afterParagraph? }
+  // Sao inseridos no corpo do artigo (apos o N-esimo paragrafo) ou onde o
+  // autor colar o atalho [[ad:id]]. Ver lib/ads.ts (getAdBlocks),
+  // lib/markdown.ts (buildArticleNodes) e components/blog/post-content.tsx.
+  adBlocks Json @default("[]")
+
   // Linhas extras do ads.txt.
   //
   // A linha do Google e gerada sozinha a partir de adsenseClientId. Este

@@ -118,3 +118,29 @@ export interface Crumb {
 
 /** Formatos de anuncio suportados pelo componente AdSlot. */
 export type AdFormat = 'horizontal' | 'rectangle' | 'vertical' | 'fluid' | 'auto';
+
+/**
+ * Bloco de anuncio gerenciavel pelo painel (campo Json de SiteSettings).
+ *
+ * Cada bloco e um anuncio do AdSense (por ID de bloco) OU um trecho de HTML
+ * livre (codigo de qualquer rede). Entra no corpo do artigo automaticamente
+ * (apos o N-esimo paragrafo) ou onde o autor colar o atalho [[ad:id]].
+ */
+export interface AdBlock {
+  /** Slug curto e estavel: usado no atalho [[ad:id]] e como key de render. */
+  id: string;
+  /** Rotulo interno exibido no painel ("No meio do artigo"). */
+  name: string;
+  enabled: boolean;
+  type: 'adsense' | 'html';
+  /** type === 'adsense': ID do bloco gerado no AdSense (so digitos). */
+  adsenseSlot: string;
+  /** type === 'adsense': formato/tamanho do bloco. */
+  format: AdFormat;
+  /** type === 'html': codigo colado da rede de anuncio. */
+  html: string;
+  /** 'paragraph' = automatico apos N paragrafos; 'manual' = via atalho. */
+  placement: 'paragraph' | 'manual';
+  /** placement === 'paragraph': insere depois deste paragrafo (padroes 3/6/9). */
+  afterParagraph: number;
+}

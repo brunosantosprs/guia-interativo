@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 import { guard, handleError, ok, parseBody, revalidateContent, emptyToNull } from '@/lib/api';
 import { settingsSchema } from '@/lib/validations/settings';
 
@@ -29,12 +30,16 @@ export async function PATCH(request: Request) {
   if (invalid) return invalid;
 
   try {
-    const clean = emptyToNull(data);
+    // adBlocks e um array Json — sai antes do emptyToNull (que e raso e
+    // trocaria strings vazias por null, corrompendo os blocos) e vai direto
+    // ao upsert. Mesmo padrao de steps/faq em app/api/servicos/route.ts.
+    const { adBlocks, ...rest } = data;
+    const clean = emptyToNull(rest);
 
     const settings = await prisma.siteSettings.upsert({
       where: { id: 'default' },
-      update: clean,
-      create: { id: 'default', ...clean },
+      update: { ...clean, adBlocks },
+      create: { id: 'default', ...clean, adBlocks },
     });
 
     // /ads.txt entra na lista porque e gerado a partir do ID do AdSense:
@@ -48,6 +53,15 @@ export async function PATCH(request: Request) {
       '/contato',
       '/ads.txt',
     ]);
+
+    // Os blocos de anuncio entram no corpo dos artigos: revalida cada post
+    // (rota dinamica exige o segundo argumento 'page'), senao a mudanca so
+    // apareceria no proximo ciclo de revalidate (30 min).
+    try {
+      revalidatePath('/blog/[slug]', 'page');
+    } catch {
+      // Fora do contexto de requisição: ignorável.
+    }
 
     return ok(settings, 'Configurações salvas.');
   } catch (error) {

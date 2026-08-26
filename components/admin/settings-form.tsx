@@ -19,8 +19,10 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Field, FormSection } from '@/components/admin/form-fields';
 import { ImageField } from '@/components/admin/image-field';
+import { AdBlocksField, DEFAULT_AD_BLOCKS } from '@/components/admin/ad-blocks-field';
 import { useToast } from '@/hooks/use-toast';
 import type { SiteSettings } from '@prisma/client';
+import type { AdBlock } from '@/types';
 
 /** Opcoes do seletor de provedor de anuncios. */
 const PROVEDORES_DE_ANUNCIO = [
@@ -44,6 +46,13 @@ export function SettingsForm({ settings }: SettingsFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+
+  // Blocos salvos (todos, inclusive desativados, para o admin poder religá-los).
+  // Sem nenhum bloco ainda: começa com a sugestão 3/6/9 + um bloco livre.
+  const blocosSalvos = Array.isArray(settings.adBlocks)
+    ? (settings.adBlocks as unknown as AdBlock[])
+    : [];
+  const adBlocksIniciais = blocosSalvos.length > 0 ? blocosSalvos : DEFAULT_AD_BLOCKS;
 
   const {
     register,
@@ -82,6 +91,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
       searchConsoleTag: settings.searchConsoleTag ?? '',
       defaultMetaTitle: settings.defaultMetaTitle ?? '',
       defaultMetaDescription: settings.defaultMetaDescription ?? '',
+      adBlocks: adBlocksIniciais,
     },
   });
 
@@ -153,6 +163,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           <TabsTrigger value="tema">Tema</TabsTrigger>
           <TabsTrigger value="contato">Contato</TabsTrigger>
           <TabsTrigger value="integracoes">Integrações</TabsTrigger>
+          <TabsTrigger value="anuncios">Anúncios</TabsTrigger>
           <TabsTrigger value="seo">SEO</TabsTrigger>
         </TabsList>
 
@@ -398,9 +409,22 @@ export function SettingsForm({ settings }: SettingsFormProps) {
             </Field>
           </FormSection>
 
+          <FormSection title="Google Search Console">
+            <Field
+              label="Código de verificação"
+              htmlFor="searchConsoleTag"
+              hint="Apenas o valor do content da meta tag google-site-verification."
+            >
+              <Input id="searchConsoleTag" {...register('searchConsoleTag')} />
+            </Field>
+          </FormSection>
+        </TabsContent>
+
+        {/* ================= ANÚNCIOS ================= */}
+        <TabsContent value="anuncios" className="space-y-6">
           <FormSection
-            title="Anúncios"
-            description="Os espaços de anúncio já estão posicionados no site. Sem provedor ativo, aparecem apenas espaços reservados discretos."
+            title="Provedor de anúncios"
+            description="Sem provedor ativo, os espaços aparecem apenas como reservas discretas — bom durante a análise do Google."
           >
             <div className="space-y-2">
               <Label>Provedor</Label>
@@ -522,23 +546,23 @@ export function SettingsForm({ settings }: SettingsFormProps) {
             <div className="flex gap-3 rounded-md border border-border bg-surface p-4 text-xs leading-relaxed text-muted-foreground">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden />
               <p>
-                Os endereços dos blocos ficam em{' '}
-                <code className="rounded bg-background px-1.5 py-0.5">lib/constants.ts</code>, na
-                constante <code className="rounded bg-background px-1.5 py-0.5">AD_POSITIONS</code>
-                . Cada posição guarda o slot do AdSense e a unidade do Ad Manager lado a lado —
-                substitua os valores de exemplo pelos reais.
+                Os anúncios{' '}
+                <strong className="font-medium text-foreground">dentro dos artigos</strong> você
+                monta abaixo, em “Blocos no artigo”. Os espaços fixos (topo, barra lateral e
+                rodapé) já aparecem sozinhos quando há um provedor ativo — não precisa configurar
+                nada para eles.
               </p>
             </div>
           </FormSection>
 
-          <FormSection title="Google Search Console">
-            <Field
-              label="Código de verificação"
-              htmlFor="searchConsoleTag"
-              hint="Apenas o valor do content da meta tag google-site-verification."
-            >
-              <Input id="searchConsoleTag" {...register('searchConsoleTag')} />
-            </Field>
+          <FormSection
+            title="Blocos no artigo"
+            description="Como o Ad Inserter do WordPress: cada bloco entra sozinho depois de um número de parágrafos (3, 6 e 9 por padrão) ou onde você colar o atalho no texto do artigo. Cada bloco pode ser um bloco do AdSense (por ID) ou um código HTML de qualquer rede."
+          >
+            <AdBlocksField
+              values={values.adBlocks ?? []}
+              onChange={(next) => setValue('adBlocks', next, { shouldValidate: true })}
+            />
           </FormSection>
         </TabsContent>
 

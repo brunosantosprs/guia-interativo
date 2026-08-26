@@ -41,6 +41,35 @@ export function formatarCNPJ(entrada: string): string {
     .replace(/(\d{4})(\d)/, '$1-$2');
 }
 
+/**
+ * Um bloco de anuncio da aba Anuncios (estilo Ad Inserter).
+ *
+ * Campos de conteudo (adsenseSlot, html) sao OPCIONAIS de proposito: o admin
+ * pre-preenche a estrutura (3/6/9 + manual) e completa os IDs depois, e um
+ * bloco sem conteudo apenas mostra o espaco reservado (ou nada, no HTML) — nao
+ * e erro. Quando preenchido, porem, o formato e validado (evita ID errado que
+ * so apareceria como espaco em branco em producao). So ADMIN grava isto.
+ */
+const adBlockSchema = z.object({
+  id: z
+    .string()
+    .min(1)
+    .max(40)
+    .regex(/^[a-z0-9_-]+$/i, 'Use apenas letras, números, hífen ou sublinhado'),
+  name: z.string().max(80).default(''),
+  enabled: z.boolean().default(true),
+  type: z.enum(['adsense', 'html']).default('adsense'),
+  adsenseSlot: z
+    .string()
+    .regex(/^\d{6,20}$/, 'O ID do bloco tem apenas números (ex.: 1234567890)')
+    .or(z.literal(''))
+    .default(''),
+  format: z.enum(['horizontal', 'rectangle', 'vertical', 'fluid', 'auto']).default('auto'),
+  html: z.string().max(20000, 'Código muito longo').default(''),
+  placement: z.enum(['paragraph', 'manual']).default('paragraph'),
+  afterParagraph: z.coerce.number().int().min(1).max(50).default(3),
+});
+
 export const settingsSchema = z
   .object({
     siteName: z.string().min(2, 'Informe o nome do site').max(80),
@@ -126,6 +155,13 @@ export const settingsSchema = z
       .nullable()
       .optional(),
     searchConsoleTag: z.string().max(200).or(z.literal('')).nullable().optional(),
+
+    /**
+     * Blocos de anuncio gerenciados no painel (aba Anuncios). Array Json em
+     * SiteSettings — desestruturado antes do emptyToNull na rota (que e raso
+     * e estragaria o array). Ate 30 blocos.
+     */
+    adBlocks: z.array(adBlockSchema).max(30).default([]),
 
     defaultMetaTitle: z.string().max(70).or(z.literal('')).nullable().optional(),
     defaultMetaDescription: z.string().max(170).or(z.literal('')).nullable().optional(),

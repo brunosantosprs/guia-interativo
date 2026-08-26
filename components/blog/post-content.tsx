@@ -1,14 +1,15 @@
-import { markdownToHtml, splitHtmlAtParagraph } from '@/lib/markdown';
-import { AdSlot } from '@/components/shared/ad-slot';
+import { buildArticleNodes } from '@/lib/markdown';
+import { AdBlock } from '@/components/shared/ad-block';
 import type { AdConfig } from '@/lib/ads';
+import type { AdBlock as AdBlockData } from '@/types';
 import { cn } from '@/lib/utils';
 
 interface PostContentProps {
   /** Conteúdo em markdown vindo do banco. */
   content: string;
   ads: AdConfig;
-  /** Insere o bloco in-article após este número de parágrafos. */
-  adAfterParagraph?: number;
+  /** Blocos de anúncio configurados no painel (aba Anúncios). */
+  blocks?: AdBlockData[];
   className?: string;
 }
 
@@ -16,34 +17,33 @@ interface PostContentProps {
  * Corpo do artigo.
  *
  * Converte o markdown em HTML no servidor (zero JavaScript enviado ao
- * cliente) e injeta o bloco de anúncio in-article no meio do texto, como
- * recomendam as diretrizes de posicionamento do Google AdSense.
+ * cliente) e intercala os blocos de anúncio configurados no painel: os de
+ * posição automática entram após o N-ésimo parágrafo (3/6/9 por padrão) e os
+ * manuais onde o autor colou o atalho `[[ad:id]]`. Sem blocos configurados,
+ * renderiza só o texto — nenhum anúncio no meio do artigo.
+ *
+ * `buildArticleNodes` devolve a sequência ordenada de nós (trechos de HTML e
+ * referências a blocos); aqui apenas a percorremos, mantendo a sanitização
+ * feita lá dentro.
  */
-export function PostContent({
-  content,
-  ads,
-  adAfterParagraph = 4,
-  className,
-}: PostContentProps) {
-  const html = markdownToHtml(content);
-  const [firstHalf, secondHalf] = splitHtmlAtParagraph(html, adAfterParagraph);
+export function PostContent({ content, ads, blocks = [], className }: PostContentProps) {
+  const nodes = buildArticleNodes(content, blocks);
+  const byId = new Map(blocks.map((b) => [b.id, b]));
 
   return (
     <div className={cn('prose-editorial', className)}>
-      <div dangerouslySetInnerHTML={{ __html: firstHalf }} />
+      {nodes.map((node, index) => {
+        if (node.kind === 'html') {
+          return <div key={index} dangerouslySetInnerHTML={{ __html: node.html }} />;
+        }
 
-      {secondHalf ? (
-        <>
-          <AdSlot
-            position="inArticle"
-            ads={ads}
-            format="fluid"
-            minHeight={260}
-            className="my-10"
-          />
-          <div dangerouslySetInnerHTML={{ __html: secondHalf }} />
-        </>
-      ) : null}
+        const block = byId.get(node.blockId);
+        if (!block) return null;
+
+        return (
+          <AdBlock key={index} block={block} ads={ads} minHeight={260} className="my-10" />
+        );
+      })}
     </div>
   );
 }

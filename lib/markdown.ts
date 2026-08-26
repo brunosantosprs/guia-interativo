@@ -1,4 +1,5 @@
 import { marked } from 'marked';
+import type { AdBlock } from '@/types';
 
 /**
  * Conversao markdown -> HTML usada no blog, nas paginas institucionais e no
@@ -123,16 +124,85 @@ export function extractHeadings(markdown: string): Heading[] {
 }
 
 /**
- * Divide o HTML apos o enesimo paragrafo para inserir o bloco de anuncio
- * "in-article" no meio do texto, como recomenda o Google AdSense.
+ * No do corpo do artigo: um trecho de HTML ja renderizado, ou a referencia a
+ * um bloco de anuncio que deve entrar naquele ponto.
  */
-export function splitHtmlAtParagraph(
-  html: string,
-  afterParagraph = 4,
-): [string, string] {
-  const parts = html.split('</p>');
-  if (parts.length <= afterParagraph + 1) return [html, ''];
-  const first = `${parts.slice(0, afterParagraph).join('</p>')}</p>`;
-  const second = parts.slice(afterParagraph).join('</p>');
-  return [first, second];
+export type ContentNode =
+  | { kind: 'html'; html: string }
+  | { kind: 'block'; blockId: string };
+
+/** Sentinela interna (caractere nulo) que marca onde cada bloco entra. */
+const blockMark = (id: string) => `\u0000AD:${id}\u0000`;
+const BLOCK_MARK = /\u0000AD:([a-zA-Z0-9_-]+)\u0000/;
+
+/** Atalho manual [[ad:id]] escrito numa linha propria vira <p>[[ad:id]]</p>. */
+const MANUAL_TOKEN_P = /<p>\s*\[\[ad:([a-zA-Z0-9_-]+)\]\]\s*<\/p>/g;
+/** Qualquer atalho solto (inline ou apontando para bloco inexistente). */
+const ANY_TOKEN = /\[\[ad:[a-zA-Z0-9_-]+\]\]/g;
+
+/**
+ * Monta a sequencia ordenada de nos (HTML + blocos) do corpo do artigo.
+ *
+ * Substitui o antigo corte unico ("primeira/segunda metade") por uma lista
+ * que o PostContent percorre, inserindo cada bloco no lugar certo. Dois
+ * mecanismos de posicionamento, como no Ad Inserter do WordPress:
+ *
+ *  - manual: o autor escreve `[[ad:id]]` numa linha; o marked gera
+ *    `<p>[[ad:id]]</p>`. Trocamos por uma sentinela quando existe um bloco
+ *    `manual` com aquele id (senao o atalho e removido, para o visitante
+ *    nunca ver o codigo cru). Precedente: applySiteTokens em content-tokens.
+ *  - por paragrafo: dividimos o HTML por `</p>` e, apos o N-esimo, inserimos
+ *    os blocos `paragraph` (3/6/9 por padrao). Um bloco cujo N ultrapassa o
+ *    total de paragrafos simplesmente nao aparece — mesma regra do corte
+ *    anterior, que so agia quando havia paragrafo suficiente depois do ponto.
+ */
+export function buildArticleNodes(markdown: string, blocks: AdBlock[]): ContentNode[] {
+  let html = markdownToHtml(markdown);
+
+  // 1) Atalho manual -> sentinela (so para blocos 'manual' existentes).
+  const manuais = new Set(blocks.filter((b) => b.placement === 'manual').map((b) => b.id));
+  html = html.replace(MANUAL_TOKEN_P, (_match, id: string) =>
+    manuais.has(id) ? blockMark(id) : '',
+  );
+  // Remove atalhos que sobraram (inline ou id inexistente): nada de codigo cru.
+  html = html.replace(ANY_TOKEN, '');
+
+  // 2) Posicoes por paragrafo -> sentinela apos o N-esimo </p>.
+  const porParagrafo = blocks
+    .filter((b) => b.placement === 'paragraph' && b.afterParagraph > 0)
+    .sort((a, b) => a.afterParagraph - b.afterParagraph);
+
+  if (porParagrafo.length > 0) {
+    const partes = html.split('</p>');
+    const totalParagrafos = partes.length - 1;
+    let montado = '';
+
+    partes.forEach((parte, index) => {
+      montado += parte;
+      if (index === partes.length - 1) return; // ultima parte: sem </p> proprio
+
+      montado += '</p>';
+      const numeroDoParagrafo = index + 1;
+      // So insere se ainda houver conteudo depois — nao encostar no fim.
+      if (numeroDoParagrafo < totalParagrafos) {
+        for (const bloco of porParagrafo) {
+          if (bloco.afterParagraph === numeroDoParagrafo) montado += blockMark(bloco.id);
+        }
+      }
+    });
+
+    html = montado;
+  }
+
+  // 3) Quebra final nas sentinelas -> lista de nos.
+  const nodes: ContentNode[] = [];
+  html.split(BLOCK_MARK).forEach((parte, index) => {
+    if (index % 2 === 0) {
+      if (parte) nodes.push({ kind: 'html', html: parte });
+    } else {
+      nodes.push({ kind: 'block', blockId: parte });
+    }
+  });
+
+  return nodes;
 }

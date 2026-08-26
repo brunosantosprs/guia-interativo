@@ -41,6 +41,7 @@ const FALLBACK: SiteSettings = {
   adManagerNetworkCode: null,
   adsTxt: null,
   searchConsoleTag: null,
+  adBlocks: [],
   defaultMetaTitle: 'Guia Interativo — Cortinas e Persianas',
   defaultMetaDescription:
     'Guias técnicos, comparativos e catálogo completo de tipos de cortinas e persianas.',

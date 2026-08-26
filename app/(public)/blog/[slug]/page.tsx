@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
 import { AdSlot } from '@/components/shared/ad-slot';
-import { getAdConfig } from '@/lib/ads';
+import { getAdConfig, getAdBlocks } from '@/lib/ads';
 import { JsonLd, articleSchema, breadcrumbSchema } from '@/components/shared/json-ld';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { PostContent } from '@/components/blog/post-content';
@@ -228,6 +228,7 @@ export default async function BlogPostPage({ params }: SlugParams) {
             <PostContent
               content={post.content}
               ads={ads}
+              blocks={getAdBlocks(settings)}
             />
 
             {/* Tags */}

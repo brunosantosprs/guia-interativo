@@ -1,6 +1,6 @@
 import type { SiteSettings } from '@prisma/client';
 import { AD_POSITIONS, type AdPosition } from '@/lib/constants';
-import type { AdFormat } from '@/types';
+import type { AdBlock, AdFormat } from '@/types';
 
 /**
  * Configuracao de anuncios resolvida uma vez e repassada aos slots.
@@ -49,6 +49,38 @@ export function getAdConfig(settings: SiteSettings): AdConfig {
   }
 
   return AD_CONFIG_DESLIGADA;
+}
+
+/**
+ * Blocos de anuncio configurados no painel (aba Anuncios).
+ *
+ * Le o campo Json `adBlocks` de SiteSettings, mantem so os ligados e
+ * normaliza cada bloco — mesmo padrao de cast dos campos Json de Service
+ * (steps/faq). Como so ADMIN grava esse campo (guard na API), confiamos no
+ * conteudo; a normalizacao existe apenas para sobreviver a dados antigos ou
+ * parciais sem quebrar a renderizacao do artigo.
+ */
+export function getAdBlocks(settings: SiteSettings): AdBlock[] {
+  const raw = settings.adBlocks;
+  if (!Array.isArray(raw)) return [];
+
+  return (raw as unknown as Array<Partial<AdBlock> | null>)
+    .filter((bloco): bloco is Partial<AdBlock> => !!bloco && typeof bloco === 'object')
+    .map(
+      (bloco) =>
+        ({
+          id: String(bloco.id ?? ''),
+          name: String(bloco.name ?? ''),
+          enabled: bloco.enabled !== false,
+          type: bloco.type === 'html' ? 'html' : 'adsense',
+          adsenseSlot: String(bloco.adsenseSlot ?? ''),
+          format: (bloco.format ?? 'auto') as AdFormat,
+          html: String(bloco.html ?? ''),
+          placement: bloco.placement === 'manual' ? 'manual' : 'paragraph',
+          afterParagraph: Number(bloco.afterParagraph ?? 0),
+        }) satisfies AdBlock,
+    )
+    .filter((bloco) => bloco.id && bloco.enabled);
 }
 
 /** Caminho completo da unidade no Ad Manager: /codigo-de-rede/unidade. */
