@@ -24,3 +24,6 @@ premium-para-trocar.json
 
 # Segredos puxados da Vercel (vercel env pull / scripts) — nunca versionar
 vercel.env
+
+# Copias de seguranca de conteudo (geradas antes de editar posts)
+.backups-conteudo/
