@@ -23,6 +23,7 @@
     "posts:auditoria": "tsx scripts/conteudo/posts-auditoria.mts",
     "post:ver": "tsx scripts/conteudo/post-ver.mts",
     "post:enriquecer": "tsx scripts/conteudo/post-enriquecer.mts",
+    "post:substituir": "tsx scripts/conteudo/post-substituir.mts",
     "vercel:env": "node scripts/vercel-env.mjs"
   },
   "prisma": {

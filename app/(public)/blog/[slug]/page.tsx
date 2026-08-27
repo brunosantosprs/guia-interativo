@@ -272,9 +272,18 @@ export default async function BlogPostPage({ params }: SlugParams) {
 
             {/* Aviso editorial — transparência exigida pelo AdSense */}
             <p className="mt-8 rounded-md border border-border bg-background p-4 text-xs leading-relaxed text-muted-foreground">
-              Este conteúdo tem caráter informativo e não substitui avaliação técnica presencial.
-              Preços e especificações são estimativas de mercado e variam por região e fornecedor.
-              Última atualização em {formatDate(post.updatedAt)}.
+              Este conteúdo tem caráter informativo e educativo. Não substitui avaliação técnica
+              presencial, projeto assinado por profissional habilitado nem orientação médica em
+              questões de saúde, alergia ou sono. Preços, percentuais e especificações são
+              estimativas de mercado e dados divulgados por fabricantes, sujeitos a variação por
+              região, marca e fornecedor. Leia o{' '}
+              <Link
+                href="/aviso-legal"
+                className="underline decoration-accent decoration-2 underline-offset-2 hover:text-foreground"
+              >
+                Aviso Legal
+              </Link>
+              . Última atualização em {formatDate(post.updatedAt)}.
             </p>
           </article>
 
