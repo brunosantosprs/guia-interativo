@@ -20,10 +20,13 @@ import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
 import { AdSlot } from '@/components/shared/ad-slot';
 import { getAdConfig } from '@/lib/ads';
-import { JsonLd, breadcrumbSchema } from '@/components/shared/json-ld';
+import { JsonLd, breadcrumbSchema, faqSchema } from '@/components/shared/json-ld';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { LightMeter } from '@/components/cortinas/light-meter';
 import { CurtainCard } from '@/components/cortinas/curtain-card';
+import { PostContent } from '@/components/blog/post-content';
+import { TableOfContents } from '@/components/blog/table-of-contents';
+import { extractHeadings, extractFaq } from '@/lib/markdown';
 import type { SlugParams } from '@/types';
 
 export const revalidate = 3600;
@@ -79,6 +82,11 @@ export default async function CurtainTypePage({ params }: SlugParams) {
 
   if (!curtain) notFound();
 
+  // Sumário do guia longo, quando houver conteúdo em markdown.
+  const headings = curtain.content?.trim() ? extractHeadings(curtain.content) : [];
+  // Perguntas frequentes do guia longo viram FAQPage.
+  const faq = curtain.content?.trim() ? extractFaq(curtain.content) : [];
+
   // Relacionados: mesma categoria primeiro, completando com destaques
   const related = await prisma.curtainType
     .findMany({
@@ -121,7 +129,13 @@ export default async function CurtainTypePage({ params }: SlugParams) {
 
   return (
     <>
-      <JsonLd data={[breadcrumbSchema(crumbs), productSchema]} />
+      <JsonLd
+        data={[
+          breadcrumbSchema(crumbs),
+          productSchema,
+          ...(faq.length > 0 ? [faqSchema(faq)] : []),
+        ]}
+      />
 
       {/* ============ CABEÇALHO ============ */}
       <section className="border-b border-border bg-hero-fade">
@@ -261,6 +275,37 @@ export default async function CurtainTypePage({ params }: SlugParams) {
                 </Link>
               </div>
             ) : null}
+
+            {/*
+              Guia longo em markdown, quando preenchido no painel.
+              Usa o mesmo pipeline do blog: sanitização, sumário e blocos de
+              anúncio. Sem conteúdo, a página fica exatamente como antes.
+            */}
+            {curtain.content?.trim() ? (
+              <div className="mt-14 border-t border-border pt-10">
+                {headings.length > 2 ? (
+                  <div className="mb-10 lg:hidden">
+                    <TableOfContents items={headings} />
+                  </div>
+                ) : null}
+                <PostContent content={curtain.content} ads={ads} />
+              </div>
+            ) : null}
+
+            {/* Aviso editorial — mesma transparência exigida pelo AdSense no blog */}
+            <p className="mt-10 rounded-md border border-border bg-background p-4 text-xs leading-relaxed text-muted-foreground">
+              Este conteúdo tem caráter informativo e educativo. Não substitui avaliação técnica
+              presencial nem projeto assinado por profissional habilitado. Preços, percentuais e
+              especificações são estimativas de mercado e dados divulgados por fabricantes,
+              sujeitos a variação por região, marca e fornecedor. Leia o{' '}
+              <Link
+                href="/aviso-legal"
+                className="underline decoration-accent decoration-2 underline-offset-2 hover:text-foreground"
+              >
+                Aviso Legal
+              </Link>
+              .
+            </p>
           </div>
 
           {/* ============ SIDEBAR ============ */}

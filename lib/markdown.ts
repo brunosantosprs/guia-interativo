@@ -123,6 +123,59 @@ export function extractHeadings(markdown: string): Heading[] {
   return headings;
 }
 
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+/**
+ * Extrai as perguntas frequentes escritas no corpo do markdown.
+ *
+ * Reconhece o padrao usado nos artigos do site: um titulo "## Perguntas
+ * frequentes" e, abaixo dele, blocos em que a primeira linha e a pergunta em
+ * negrito e as linhas seguintes sao a resposta.
+ *
+ *     ## Perguntas frequentes
+ *
+ *     **A cortina encolhe na lavagem?**
+ *     Algodao e linho puros encolhem de 3% a 5%.
+ *
+ * Serve para gerar o JSON-LD de FAQPage sem duplicar o conteudo: a fonte
+ * continua sendo o texto que o autor escreve no painel.
+ */
+export function extractFaq(markdown: string): FaqItem[] {
+  const inicio = /^##\s+Perguntas frequentes\s*$/im.exec(markdown ?? '');
+  if (!inicio) return [];
+
+  // Da secao ate o proximo H2 (ou o fim do texto).
+  const resto = (markdown ?? '').slice(inicio.index + inicio[0].length);
+  const proximoH2 = /^##\s+/m.exec(resto);
+  const trecho = proximoH2 ? resto.slice(0, proximoH2.index) : resto;
+
+  const itens: FaqItem[] = [];
+
+  for (const bloco of trecho.split(/\n\s*\n/)) {
+    const linhas = bloco.trim().split('\n');
+    if (linhas.length < 2) continue;
+
+    const pergunta = /^\*\*(.+?)\*\*\s*$/.exec(linhas[0].trim());
+    if (!pergunta) continue;
+
+    // Resposta em texto puro — o schema.org nao aceita marcacao.
+    const resposta = linhas
+      .slice(1)
+      .join(' ')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1') // links viram so o rotulo
+      .replace(/[*_`]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (resposta) itens.push({ question: pergunta[1].trim(), answer: resposta });
+  }
+
+  return itens;
+}
+
 /**
  * No do corpo do artigo: um trecho de HTML ja renderizado, ou a referencia a
  * um bloco de anuncio que deve entrar naquele ponto.

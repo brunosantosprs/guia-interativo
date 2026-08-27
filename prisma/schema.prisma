@@ -213,6 +213,12 @@ model CurtainType {
   whenToChoose  String        @db.Text
   installation  String?       @db.Text
 
+  /// Guia longo em markdown, exibido abaixo da ficha tecnica.
+  /// Aceita titulos, tabelas, listas e links — renderizado pelo mesmo
+  /// pipeline do blog (lib/markdown). Opcional: sem ele, a pagina mostra
+  /// so a ficha, como antes.
+  content String? @db.Text
+
   image    String?
   imageAlt String?
   featured Boolean       @default(false)

@@ -58,6 +58,7 @@ export function CurtainForm({ curtain }: CurtainFormProps) {
       bestRooms: curtain?.bestRooms ?? [],
       whenToChoose: curtain?.whenToChoose ?? '',
       installation: curtain?.installation ?? '',
+      content: curtain?.content ?? '',
       image: curtain?.image ?? '',
       imageAlt: curtain?.imageAlt ?? '',
       featured: curtain?.featured ?? false,
@@ -70,6 +71,7 @@ export function CurtainForm({ curtain }: CurtainFormProps) {
 
   const values = watch();
   const descriptionWords = (values.description ?? '').trim().split(/\s+/).filter(Boolean).length;
+  const contentWords = (values.content ?? '').trim().split(/\s+/).filter(Boolean).length;
 
   async function onSubmit(data: CurtainTypeInput) {
     setSaving(true);
@@ -195,6 +197,21 @@ export function CurtainForm({ curtain }: CurtainFormProps) {
 
             <Field label="Manutenção e limpeza" htmlFor="maintenance">
               <Textarea id="maintenance" rows={3} {...register('maintenance')} />
+            </Field>
+          </FormSection>
+
+          <FormSection
+            title="Guia completo (opcional)"
+            description="Texto longo exibido abaixo da ficha técnica, com sumário automático. Aceita markdown: ## para títulos, ** ** para negrito, - para listas, tabelas e links. Deixe em branco para a página mostrar só a ficha."
+          >
+            <Field
+              label="Guia em markdown"
+              htmlFor="content"
+              error={errors.content?.message}
+              counter={`${contentWords} palavras`}
+              hint="Use ## para as seções — elas viram o sumário lateral automaticamente."
+            >
+              <Textarea id="content" rows={20} {...register('content')} />
             </Field>
           </FormSection>
 

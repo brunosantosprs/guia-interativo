@@ -110,6 +110,8 @@ export const curtainTypeSchema = z.object({
   bestRooms: z.array(z.string()).min(1, 'Informe ao menos um ambiente'),
   whenToChoose: z.string().min(80, 'Explique quando recomendar este modelo'),
   installation: z.string().or(z.literal('')).nullable().optional(),
+  // Guia longo em markdown. Opcional — a ficha continua valendo sozinha.
+  content: z.string().or(z.literal('')).nullable().optional(),
   image: imageRefSchema,
   imageAlt: z.string().max(180).or(z.literal('')).nullable().optional(),
   featured: z.boolean().default(false),

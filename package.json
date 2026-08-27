@@ -24,6 +24,7 @@
     "post:ver": "tsx scripts/conteudo/post-ver.mts",
     "post:enriquecer": "tsx scripts/conteudo/post-enriquecer.mts",
     "post:substituir": "tsx scripts/conteudo/post-substituir.mts",
+    "curtain:guia": "tsx scripts/conteudo/curtain-guia.mts",
     "vercel:env": "node scripts/vercel-env.mjs"
   },
   "prisma": {

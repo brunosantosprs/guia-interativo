@@ -7,13 +7,13 @@ import { prisma } from '@/lib/prisma';
 import { getSettings } from '@/lib/settings';
 
 import { absoluteUrl, formatDate, initials, toISO } from '@/lib/utils';
-import { extractHeadings } from '@/lib/markdown';
+import { extractHeadings, extractFaq } from '@/lib/markdown';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
 import { AdSlot } from '@/components/shared/ad-slot';
 import { getAdConfig, getAdBlocks } from '@/lib/ads';
-import { JsonLd, articleSchema, breadcrumbSchema } from '@/components/shared/json-ld';
+import { JsonLd, articleSchema, breadcrumbSchema, faqSchema } from '@/components/shared/json-ld';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { PostContent } from '@/components/blog/post-content';
 import { TableOfContents } from '@/components/blog/table-of-contents';
@@ -119,6 +119,8 @@ export default async function BlogPostPage({ params }: SlugParams) {
     .catch(() => []);
 
   const headings = extractHeadings(post.content);
+  // Perguntas frequentes escritas no corpo do artigo viram FAQPage.
+  const faq = extractFaq(post.content);
   const crumbs = [
     { label: 'Blog', href: '/blog' },
     ...(post.category
@@ -144,6 +146,7 @@ export default async function BlogPostPage({ params }: SlugParams) {
             siteName: settings.siteName,
             keywords: post.keywords,
           }),
+          ...(faq.length > 0 ? [faqSchema(faq)] : []),
         ]}
       />
 
