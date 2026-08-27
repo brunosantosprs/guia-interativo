@@ -25,6 +25,7 @@
     "post:enriquecer": "tsx scripts/conteudo/post-enriquecer.mts",
     "post:substituir": "tsx scripts/conteudo/post-substituir.mts",
     "curtain:guia": "tsx scripts/conteudo/curtain-guia.mts",
+    "curtain:ver": "tsx scripts/conteudo/curtain-ver.mts",
     "curtains:auditoria": "tsx scripts/conteudo/curtains-auditoria.mts",
     "vercel:env": "node scripts/vercel-env.mjs"
   },
