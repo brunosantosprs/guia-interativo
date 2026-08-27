@@ -20,6 +20,7 @@
     "db:harden": "prisma db execute --file prisma/security.sql --schema prisma/schema.prisma",
     "env:check": "node scripts/check-env.mjs",
     "posts:inventario": "tsx scripts/conteudo/posts-inventario.mts",
+    "posts:auditoria": "tsx scripts/conteudo/posts-auditoria.mts",
     "post:ver": "tsx scripts/conteudo/post-ver.mts",
     "post:enriquecer": "tsx scripts/conteudo/post-enriquecer.mts",
     "vercel:env": "node scripts/vercel-env.mjs"
