@@ -40,14 +40,24 @@ const nextConfig = {
     // enquadramento em iframe de terceiros.
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googlesyndication.com https://*.googletagmanager.com https://*.google-analytics.com https://*.doubleclick.net https://*.google.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googlesyndication.com https://*.googletagmanager.com https://*.google-analytics.com https://*.adtrafficquality.google https://*.doubleclick.net https://*.google.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       "media-src 'self'",
-      "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.doubleclick.net https://*.supabase.co",
+      // connect-src precisa cobrir os endpoints REAIS de coleta do GA4, que
+      // nao sao obvios:
+      //   - analytics.google.com (sem subdominio!) e www.google.com recebem
+      //     o page_view. Um padrao "*.analytics.google.com" NAO casa com o
+      //     host nu "analytics.google.com" — por isso "*.google.com", que
+      //     cobre os dois. Sem isso a CSP bloqueia toda a coleta em silencio:
+      //     o gtag carrega, cria os cookies _ga e parece funcionar, mas nenhum
+      //     dado chega aos relatorios.
+      //   - adtrafficquality.google e usado pelo AdSense na deteccao de
+      //     trafego invalido; bloquea-lo atrapalha a veiculacao.
+      "connect-src 'self' https://*.google-analytics.com https://*.google.com https://*.googletagmanager.com https://*.googlesyndication.com https://*.adtrafficquality.google https://*.doubleclick.net https://*.supabase.co",
       // Anúncios do AdSense são servidos dentro de iframes
-      "frame-src https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com",
+      "frame-src https://*.googlesyndication.com https://*.adtrafficquality.google https://*.doubleclick.net https://*.google.com",
       "worker-src 'self' blob:",
       "object-src 'none'",
       "base-uri 'self'",
