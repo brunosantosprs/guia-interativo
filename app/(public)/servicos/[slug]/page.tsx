@@ -61,6 +61,13 @@ export async function generateMetadata({ params }: SlugParams): Promise<Metadata
       url: `/servicos/${service.slug}`,
       images: service.image ? [{ url: service.image, alt: service.title }] : undefined,
     },
+    /** Sem este bloco, o card do Twitter/X mostra o nome do site, nao o do servico. */
+    twitter: {
+      card: 'summary_large_image',
+      title: service.metaTitle || service.title,
+      description: service.metaDescription || service.shortDescription,
+      images: service.image ? [service.image] : undefined,
+    },
   };
 }
 

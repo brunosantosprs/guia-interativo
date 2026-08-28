@@ -72,6 +72,16 @@ export async function generateMetadata({ params }: SlugParams): Promise<Metadata
       url,
       images: curtain.image ? [{ url: curtain.image, alt: curtain.imageAlt ?? curtain.name }] : undefined,
     },
+    /**
+     * Sem este bloco, o card do Twitter/X cai no padrao do layout raiz e
+     * mostra o nome do site no lugar do nome da peca.
+     */
+    twitter: {
+      card: 'summary_large_image',
+      title: curtain.metaTitle || curtain.name,
+      description: curtain.metaDescription || curtain.summary,
+      images: curtain.image ? [curtain.image] : undefined,
+    },
   };
 }
 

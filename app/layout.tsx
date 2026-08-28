@@ -60,11 +60,18 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: settings.siteName,
       title: settings.defaultMetaTitle || settings.siteName,
       description: settings.defaultMetaDescription || settings.description,
+      /**
+       * Sem width/height declarados de proposito.
+       *
+       * A imagem padrao vem do painel e pode ter qualquer proporcao. Declarar
+       * 1200x630 fixo quando o arquivo real tem outra dimensao faz o WhatsApp
+       * e o Facebook as vezes nao renderizarem a previa — eles confiam no
+       * valor declarado e desistem quando ele nao bate. Sem os campos, os
+       * rastreadores leem a dimensao do proprio arquivo.
+       */
       images: [
         {
           url: settings.ogImage || '/images/og-default.jpg',
-          width: 1200,
-          height: 630,
           alt: settings.siteName,
         },
       ],
