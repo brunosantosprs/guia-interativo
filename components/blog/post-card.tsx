@@ -34,7 +34,9 @@ export function PostCard({ post, variant = 'default', priority = false, classNam
                 {post.category.name}
               </span>
             ) : null}
-            <h3 className="mt-1 line-clamp-2 font-serif text-sm leading-snug transition-colors group-hover:text-accent">
+            {/* Mesma razão do card comum, e aqui pesa mais: 14px é pequeno
+                demais para uma serifada de alto contraste. */}
+            <h3 className="mt-1 line-clamp-2 font-sans text-sm font-semibold leading-snug tracking-[-0.01em] transition-colors group-hover:text-accent">
               {post.title}
             </h3>
             <p className="mt-1.5 text-xs text-muted-foreground">
@@ -84,10 +86,19 @@ export function PostCard({ post, variant = 'default', priority = false, classNam
             </span>
           </div>
 
+          {/*
+            A Playfair fica só no card em destaque, onde o título é grande.
+            Ela é uma serifada de alto contraste: os traços finos quase somem
+            abaixo de uns 24px, e o título do card comum tem 18px. Ali a
+            Inter em semibold lê muito melhor e mantém a hierarquia, porque
+            o contraste com o resumo continua vindo do peso e do tamanho.
+          */}
           <h3
             className={cn(
-              'mt-3 font-serif leading-snug transition-colors group-hover:text-accent',
-              featured ? 'text-2xl md:text-[1.75rem]' : 'text-lg',
+              'mt-3 leading-snug transition-colors group-hover:text-accent',
+              featured
+                ? 'font-serif text-2xl md:text-[1.75rem]'
+                : 'font-sans text-[1.0625rem] font-semibold tracking-[-0.01em]',
             )}
           >
             {post.title}

@@ -36,7 +36,10 @@ export function CurtainCard({ curtain, priority = false, className }: CurtainCar
         </div>
 
         <div className="flex flex-1 flex-col p-5">
-          <h3 className="flex items-start justify-between gap-2 font-serif text-lg leading-snug">
+          {/* Mesma escolha dos cards do blog: a serifada de alto contraste
+              perde legibilidade nesse tamanho, e aqui o leitor percorre uma
+              lista inteira de títulos. */}
+          <h3 className="flex items-start justify-between gap-2 font-sans text-[1.0625rem] font-semibold leading-snug tracking-[-0.01em]">
             <span className="transition-colors group-hover:text-accent">{curtain.name}</span>
             <ArrowUpRight
               className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
