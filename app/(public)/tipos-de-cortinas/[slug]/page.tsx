@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { getSettings } from '@/lib/settings';
-import { LIGHT_BLOCKING_LABELS, SITE } from '@/lib/constants';
+import { ESPECIALISTA, LIGHT_BLOCKING_LABELS, SITE } from '@/lib/constants';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
@@ -26,6 +26,7 @@ import { LightMeter } from '@/components/cortinas/light-meter';
 import { CurtainCard } from '@/components/cortinas/curtain-card';
 import { PostContent } from '@/components/blog/post-content';
 import { TableOfContents } from '@/components/blog/table-of-contents';
+import { AuthorCard } from '@/components/blog/author-card';
 import { extractHeadings, extractFaq } from '@/lib/markdown';
 import type { SlugParams } from '@/types';
 
@@ -86,7 +87,15 @@ export async function generateMetadata({ params }: SlugParams): Promise<Metadata
 }
 
 export default async function CurtainTypePage({ params }: SlugParams) {
-  const [settings, curtain] = await Promise.all([getSettings(), getCurtain(params.slug)]);
+  // O autor vem do banco para a bio e a foto ficarem editaveis pelo painel,
+  // igual ao blog — a ficha de cortina nao tem autor proprio.
+  const [settings, curtain, autor] = await Promise.all([
+    getSettings(),
+    getCurtain(params.slug),
+    prisma.user
+      .findFirst({ where: { name: ESPECIALISTA.nome }, select: { bio: true, image: true } })
+      .catch(() => null),
+  ]);
 
   const ads = getAdConfig(settings);
 
@@ -301,6 +310,15 @@ export default async function CurtainTypePage({ params }: SlugParams) {
                 <PostContent content={curtain.content} ads={ads} />
               </div>
             ) : null}
+
+            {/* Mesma assinatura do blog: quem chega aqui já leu a ficha inteira */}
+            <AuthorCard
+              nome={ESPECIALISTA.nome}
+              bio={autor?.bio}
+              foto={autor?.image}
+              assunto={curtain.name}
+              origem="ficha"
+            />
 
             {/* Aviso editorial — mesma transparência exigida pelo AdSense no blog */}
             <p className="mt-10 rounded-md border border-border bg-background p-4 text-xs leading-relaxed text-muted-foreground">

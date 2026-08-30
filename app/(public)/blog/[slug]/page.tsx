@@ -20,6 +20,7 @@ import { TableOfContents } from '@/components/blog/table-of-contents';
 import { ShareButtons } from '@/components/blog/share-buttons';
 import { ReadingProgress } from '@/components/blog/reading-progress';
 import { PostCard } from '@/components/blog/post-card';
+import { AuthorCard } from '@/components/blog/author-card';
 import type { PostCardData, SlugParams } from '@/types';
 
 export const revalidate = 1800;
@@ -251,27 +252,12 @@ export default async function BlogPostPage({ params }: SlugParams) {
               className="mt-8"
             />
 
-            {/* Autor */}
-            <div className="mt-12 flex gap-5 rounded-lg border border-border bg-surface p-6">
-              {post.author.image ? (
-                <Image
-                  src={post.author.image}
-                  alt={post.author.name}
-                  width={56}
-                  height={56}
-                  className="h-14 w-14 shrink-0 rounded-full border border-border"
-                />
-              ) : null}
-              <div>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Escrito por</p>
-                <p className="mt-0.5 font-serif text-lg">{post.author.name}</p>
-                {post.author.bio ? (
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {post.author.bio}
-                  </p>
-                ) : null}
-              </div>
-            </div>
+            <AuthorCard
+              nome={post.author.name}
+              bio={post.author.bio}
+              foto={post.author.image}
+              assunto={post.title}
+            />
 
             {/* Aviso editorial — transparência exigida pelo AdSense */}
             <p className="mt-8 rounded-md border border-border bg-background p-4 text-xs leading-relaxed text-muted-foreground">

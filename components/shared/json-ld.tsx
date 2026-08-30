@@ -1,4 +1,4 @@
-import { SITE } from '@/lib/constants';
+import { ESPECIALISTA, SITE } from '@/lib/constants';
 import type { Crumb } from '@/types';
 
 /**
@@ -100,7 +100,22 @@ export function articleSchema(input: ArticleSchemaInput) {
     image: `${SITE.url}${input.image ?? '/images/og-default.jpg'}`,
     datePublished: input.publishedAt ? new Date(input.publishedAt).toISOString() : undefined,
     dateModified: input.updatedAt ? new Date(input.updatedAt).toISOString() : undefined,
-    author: { '@type': 'Organization', name: input.authorName, url: SITE.url },
+    // Pessoa, e não organização: o Google usa a autoria declarada como
+    // sinal de experiência real no assunto, e quem assina aqui é um
+    // profissional que atua na área — não uma redação anônima.
+    author: {
+      '@type': 'Person',
+      name: input.authorName,
+      jobTitle: ESPECIALISTA.titulo,
+      url: `${SITE.url}/sobre`,
+      knowsAbout: [
+        'cortinas',
+        'persianas',
+        'controle solar',
+        'conforto térmico residencial',
+        'instalação e medição de cortinas',
+      ],
+    },
     publisher: {
       '@type': 'Organization',
       name: input.siteName,

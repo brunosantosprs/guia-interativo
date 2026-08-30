@@ -159,6 +159,29 @@ export type AdPosition = keyof typeof AD_POSITIONS;
 /** Paginação padrão. */
 export const POSTS_PER_PAGE = 9;
 
+/**
+ * Credenciais do especialista que assina os guias.
+ *
+ * Ficam aqui, e não no banco, porque mudam muito raramente e aparecem em
+ * lugares fora do post — como o rodapé do artigo e os dados estruturados
+ * que o Google lê. A biografia em si continua no cadastro do usuário,
+ * editável pelo painel sem mexer em código.
+ */
+export const ESPECIALISTA = {
+  nome: 'Josimar Tavares',
+  primeiroNome: 'Josimar',
+  titulo: 'Instalador e consultor de cortinas e persianas',
+  anosDeExperiencia: 22,
+  clientesAtendidos: 5000,
+  /**
+   * Contato direto do Josimar — diferente do WhatsApp geral do site, que
+   * atende a outros assuntos. Quem clica no rodapé de um guia quer falar
+   * com quem escreveu, então o número é o dele.
+   */
+  whatsapp: '5562984851162',
+  telefoneVisivel: '(62) 98485-1162',
+} as const;
+
 /** Ordem canônica das colunas de comparação da tabela de tipos. */
 export const COMPARISON_COLUMNS = [
   'Tipo',
