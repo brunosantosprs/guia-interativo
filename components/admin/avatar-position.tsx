@@ -42,17 +42,30 @@ export function AvatarPosition({ src, value, onChange }: AvatarPositionProps) {
   const [arrastando, setArrastando] = useState(false);
   const pos = lerPosicao(value || PADRAO);
 
+  /**
+   * Onde o arraste comecou: ponteiro e posicao da foto naquele instante.
+   *
+   * O movimento precisa ser relativo a isso. Calcular a posicao direto das
+   * coordenadas do ponteiro faz a foto saltar assim que se encosta nela, o
+   * que parece defeito — foi exatamente o que acontecia antes.
+   */
+  const inicio = useRef({ px: 0, py: 0, x: 50, y: 50 });
+
   const mover = useCallback(
     (clientX: number, clientY: number) => {
       const area = areaRef.current;
       if (!area) return;
 
       const r = area.getBoundingClientRect();
-      // Arrastar para a direita deve revelar o lado esquerdo da foto, e
-      // object-position funciona ao contrario disso — dai a inversao.
-      const x = limitar(100 - ((clientX - r.left) / r.width) * 100);
-      const y = limitar(100 - ((clientY - r.top) / r.height) * 100);
-      onChange(`${x}% ${y}%`);
+      const ref = inicio.current;
+
+      // Quanto o ponteiro andou, em porcentagem da largura do circulo.
+      const dx = ((clientX - ref.px) / r.width) * 100;
+      const dy = ((clientY - ref.py) / r.height) * 100;
+
+      // Sinal invertido: arrastar para a direita revela o lado esquerdo da
+      // foto, e object-position mede o oposto disso.
+      onChange(`${limitar(ref.x - dx)}% ${limitar(ref.y - dy)}%`);
     },
     [onChange],
   );
@@ -126,12 +139,13 @@ export function AvatarPosition({ src, value, onChange }: AvatarPositionProps) {
           aria-valuemax={100}
           onPointerDown={(e) => {
             e.preventDefault();
+            // Marca o ponto de partida; a foto só se move a partir daqui.
+            inicio.current = { px: e.clientX, py: e.clientY, x: pos.x, y: pos.y };
             setArrastando(true);
-            mover(e.clientX, e.clientY);
           }}
           onKeyDown={aoTeclar}
-          className={`relative h-32 w-32 shrink-0 overflow-hidden rounded-full border border-border bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-            arrastando ? 'cursor-grabbing' : 'cursor-grab'
+          className={`relative h-36 w-36 shrink-0 touch-none overflow-hidden rounded-full border-2 border-dashed border-accent/60 bg-surface transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+            arrastando ? 'cursor-grabbing border-solid border-accent' : 'cursor-grab'
           }`}
         >
           {/* img simples, e não next/image: aqui a origem é uma URL que muda
@@ -145,10 +159,13 @@ export function AvatarPosition({ src, value, onChange }: AvatarPositionProps) {
             style={{ objectPosition: `${pos.x}% ${pos.y}%` }}
           />
 
+          {/* Visível desde o começo: o controle passa despercebido se o
+              convite ao arraste só aparecer no hover. */}
           {!arrastando ? (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity hover:opacity-100">
-              <span className="rounded-full bg-background/85 p-2">
-                <Move className="h-4 w-4" aria-hidden />
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <span className="flex items-center gap-1.5 rounded-full bg-background/90 px-2.5 py-1.5 text-xs font-medium shadow-soft">
+                <Move className="h-3.5 w-3.5" aria-hidden />
+                Arraste
               </span>
             </div>
           ) : null}
