@@ -11,6 +11,7 @@ const safeSelect = {
   role: true,
   image: true,
   imagePosition: true,
+  imageZoom: true,
   bio: true,
   active: true,
   createdAt: true,

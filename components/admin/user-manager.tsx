@@ -40,6 +40,7 @@ interface UserRow {
   role: Role;
   image: string | null;
   imagePosition: string | null;
+  imageZoom: number | null;
   bio: string | null;
   active: boolean;
   createdAt: Date;
@@ -59,6 +60,7 @@ const EMPTY = {
   bio: '',
   image: '',
   imagePosition: '',
+  imageZoom: 1,
   active: true,
 };
 
@@ -87,6 +89,7 @@ export function UserManager({ users, currentUserId }: UserManagerProps) {
       bio: user.bio ?? '',
       image: user.image ?? '',
       imagePosition: user.imagePosition ?? '',
+      imageZoom: user.imageZoom ?? 1,
       active: user.active,
     });
     setEditing(user);
@@ -365,7 +368,10 @@ export function UserManager({ users, currentUserId }: UserManagerProps) {
             <AvatarPosition
               src={form.image}
               value={form.imagePosition}
-              onChange={(imagePosition) => setForm({ ...form, imagePosition })}
+              zoom={form.imageZoom}
+              onChange={(imagePosition, imageZoom) =>
+                setForm({ ...form, imagePosition, imageZoom })
+              }
             />
 
             <div className="flex items-center justify-between gap-4 rounded-md border border-border p-3.5">

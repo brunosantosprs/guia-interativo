@@ -9,6 +9,8 @@ interface AuthorCardProps {
   foto?: string | null;
   /** Recorte da foto, como "50% 30%". Sem isso o corte e pelo centro. */
   fotoPosicao?: string | null;
+  /** Aproximação da foto. 1 é o enquadramento original. */
+  fotoZoom?: number | null;
   /** Título do guia ou nome da cortina, para a mensagem já chegar com contexto. */
   assunto?: string;
   /** 'guia' no blog, 'ficha' nas páginas de tipos de cortinas. */
@@ -38,6 +40,7 @@ export function AuthorCard({
   bio,
   foto,
   fotoPosicao,
+  fotoZoom,
   assunto,
   origem = 'guia',
 }: AuthorCardProps) {
@@ -52,14 +55,21 @@ export function AuthorCard({
       <div className="p-6 md:p-8">
         <div className="flex flex-col gap-5 sm:flex-row">
           {foto ? (
-            <Image
-              src={foto}
-              alt={nome}
-              width={64}
-              height={64}
-              className="h-16 w-16 shrink-0 rounded-full border border-border object-cover"
-              style={fotoPosicao ? { objectPosition: fotoPosicao } : undefined}
-            />
+            // O recorte precisa do wrapper: a aproximação é um scale na
+            // imagem, e sem overflow-hidden ela transbordaria do círculo.
+            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-border">
+              <Image
+                src={foto}
+                alt={nome}
+                width={128}
+                height={128}
+                className="h-full w-full object-cover"
+                style={{
+                  objectPosition: fotoPosicao ?? undefined,
+                  transform: fotoZoom && fotoZoom !== 1 ? `scale(${fotoZoom})` : undefined,
+                }}
+              />
+            </div>
           ) : (
             <div
               aria-hidden

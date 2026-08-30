@@ -47,7 +47,16 @@ async function getPost(slug: string) {
   return prisma.post.findFirst({
     where: { slug, status: 'PUBLISHED' },
     include: {
-      author: { select: { id: true, name: true, image: true, imagePosition: true, bio: true } },
+      author: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          imagePosition: true,
+          imageZoom: true,
+          bio: true,
+        },
+      },
       category: true,
       tags: true,
     },
@@ -172,18 +181,24 @@ export default async function BlogPostPage({ params }: SlugParams) {
             <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-2.5">
                 {post.author.image ? (
-                  <Image
-                    src={post.author.image}
-                    alt={post.author.name}
-                    width={36}
-                    height={36}
-                    className="h-9 w-9 rounded-full border border-border object-cover"
-                    style={
-                      post.author.imagePosition
-                        ? { objectPosition: post.author.imagePosition }
-                        : undefined
-                    }
-                  />
+                  // Wrapper com overflow-hidden: a aproximação é um scale na
+                  // imagem, que sem isso escaparia do círculo.
+                  <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-border">
+                    <Image
+                      src={post.author.image}
+                      alt={post.author.name}
+                      width={72}
+                      height={72}
+                      className="h-full w-full object-cover"
+                      style={{
+                        objectPosition: post.author.imagePosition ?? undefined,
+                        transform:
+                          post.author.imageZoom && post.author.imageZoom !== 1
+                            ? `scale(${post.author.imageZoom})`
+                            : undefined,
+                      }}
+                    />
+                  </div>
                 ) : (
                   <span className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-xs font-medium">
                     {initials(post.author.name)}
@@ -262,6 +277,7 @@ export default async function BlogPostPage({ params }: SlugParams) {
               bio={post.author.bio}
               foto={post.author.image}
               fotoPosicao={post.author.imagePosition}
+              fotoZoom={post.author.imageZoom}
               assunto={post.title}
             />
 

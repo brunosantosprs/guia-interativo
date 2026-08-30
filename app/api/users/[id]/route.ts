@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { fail, guard, handleError, ok, parseBody, emptyToNull } from '@/lib/api';
+import { fail, guard, handleError, ok, parseBody, emptyToNull, revalidateContent } from '@/lib/api';
 import { userUpdateSchema } from '@/lib/validations/settings';
 import { hashPassword } from '@/lib/auth';
 import type { IdParams } from '@/types';
@@ -11,6 +11,7 @@ const safeSelect = {
   role: true,
   image: true,
   imagePosition: true,
+  imageZoom: true,
   bio: true,
   active: true,
   createdAt: true,
@@ -49,6 +50,30 @@ export async function PATCH(request: Request, { params }: IdParams) {
       },
       select: safeSelect,
     });
+
+    /**
+     * A foto e o nome do autor aparecem no rodape de todo artigo e de toda
+     * ficha de cortina. Sem revalidar, o ajuste so apareceria no site depois
+     * que o cache da pagina expirasse — meia hora, no caso do blog — e quem
+     * acabou de enquadrar a foto conclui, com razao, que nao funcionou.
+     */
+    const [posts, fichas] = await Promise.all([
+      prisma.post.findMany({
+        where: { authorId: params.id, status: 'PUBLISHED' },
+        select: { slug: true },
+      }),
+      prisma.curtainType.findMany({
+        where: { status: 'PUBLISHED' },
+        select: { slug: true },
+      }),
+    ]);
+
+    revalidateContent([
+      '/',
+      '/blog',
+      ...posts.map((p) => `/blog/${p.slug}`),
+      ...fichas.map((f) => `/tipos-de-cortinas/${f.slug}`),
+    ]);
 
     return ok(user, 'Usuário atualizado.');
   } catch (error) {

@@ -93,7 +93,7 @@ export default async function CurtainTypePage({ params }: SlugParams) {
     getSettings(),
     getCurtain(params.slug),
     prisma.user
-      .findFirst({ where: { name: ESPECIALISTA.nome }, select: { bio: true, image: true, imagePosition: true } })
+      .findFirst({ where: { name: ESPECIALISTA.nome }, select: { bio: true, image: true, imagePosition: true, imageZoom: true } })
       .catch(() => null),
   ]);
 
@@ -317,6 +317,7 @@ export default async function CurtainTypePage({ params }: SlugParams) {
               bio={autor?.bio}
               foto={autor?.image}
               fotoPosicao={autor?.imagePosition}
+              fotoZoom={autor?.imageZoom}
               assunto={curtain.name}
               origem="ficha"
             />

@@ -214,6 +214,9 @@ export const userCreateSchema = z.object({
     .or(z.literal(''))
     .nullable()
     .optional(),
+  // Aproximacao do avatar. Limite alto porque acima disso a foto perde
+  // definicao no circulo, e o resultado fica pior que o corte original.
+  imageZoom: z.number().min(1).max(3).nullable().optional(),
   active: z.boolean().default(true),
 });
 
