@@ -206,6 +206,14 @@ export const userCreateSchema = z.object({
   role: roleSchema.default('AUTHOR'),
   bio: z.string().max(600).or(z.literal('')).nullable().optional(),
   image: imageRefSchema,
+  // Recorte do avatar, no formato do object-position do CSS. O formato
+  // fechado evita que qualquer string entre no atributo de estilo.
+  imagePosition: z
+    .string()
+    .regex(/^\d{1,3}% \d{1,3}%$/, 'Formato esperado: "50% 50%"')
+    .or(z.literal(''))
+    .nullable()
+    .optional(),
   active: z.boolean().default(true),
 });
 

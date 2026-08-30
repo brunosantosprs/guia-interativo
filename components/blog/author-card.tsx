@@ -7,6 +7,8 @@ interface AuthorCardProps {
   nome: string;
   bio?: string | null;
   foto?: string | null;
+  /** Recorte da foto, como "50% 30%". Sem isso o corte e pelo centro. */
+  fotoPosicao?: string | null;
   /** Título do guia ou nome da cortina, para a mensagem já chegar com contexto. */
   assunto?: string;
   /** 'guia' no blog, 'ficha' nas páginas de tipos de cortinas. */
@@ -31,7 +33,14 @@ function iniciais(nome: string): string {
  * separada por borda e fundo próprio para ninguém confundir o que é
  * orientação com o que é anúncio.
  */
-export function AuthorCard({ nome, bio, foto, assunto, origem = 'guia' }: AuthorCardProps) {
+export function AuthorCard({
+  nome,
+  bio,
+  foto,
+  fotoPosicao,
+  assunto,
+  origem = 'guia',
+}: AuthorCardProps) {
   const mensagem = assunto
     ? origem === 'ficha'
       ? `Olá, ${ESPECIALISTA.primeiroNome}! Vi a página sobre ${assunto} no Guia Interativo e queria tirar uma dúvida.`
@@ -49,6 +58,7 @@ export function AuthorCard({ nome, bio, foto, assunto, origem = 'guia' }: Author
               width={64}
               height={64}
               className="h-16 w-16 shrink-0 rounded-full border border-border object-cover"
+              style={fotoPosicao ? { objectPosition: fotoPosicao } : undefined}
             />
           ) : (
             <div

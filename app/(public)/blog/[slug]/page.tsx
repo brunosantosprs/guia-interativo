@@ -47,7 +47,7 @@ async function getPost(slug: string) {
   return prisma.post.findFirst({
     where: { slug, status: 'PUBLISHED' },
     include: {
-      author: { select: { id: true, name: true, image: true, bio: true } },
+      author: { select: { id: true, name: true, image: true, imagePosition: true, bio: true } },
       category: true,
       tags: true,
     },
@@ -177,7 +177,12 @@ export default async function BlogPostPage({ params }: SlugParams) {
                     alt={post.author.name}
                     width={36}
                     height={36}
-                    className="h-9 w-9 rounded-full border border-border"
+                    className="h-9 w-9 rounded-full border border-border object-cover"
+                    style={
+                      post.author.imagePosition
+                        ? { objectPosition: post.author.imagePosition }
+                        : undefined
+                    }
                   />
                 ) : (
                   <span className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-xs font-medium">
@@ -256,6 +261,7 @@ export default async function BlogPostPage({ params }: SlugParams) {
               nome={post.author.name}
               bio={post.author.bio}
               foto={post.author.image}
+              fotoPosicao={post.author.imagePosition}
               assunto={post.title}
             />
 

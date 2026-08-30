@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dialog';
 import { Field } from '@/components/admin/form-fields';
 import { ImageField } from '@/components/admin/image-field';
+import { AvatarPosition } from '@/components/admin/avatar-position';
 import { useToast } from '@/hooks/use-toast';
 import type { Role } from '@prisma/client';
 
@@ -38,6 +39,7 @@ interface UserRow {
   email: string;
   role: Role;
   image: string | null;
+  imagePosition: string | null;
   bio: string | null;
   active: boolean;
   createdAt: Date;
@@ -56,6 +58,7 @@ const EMPTY = {
   role: 'AUTHOR' as Role,
   bio: '',
   image: '',
+  imagePosition: '',
   active: true,
 };
 
@@ -83,6 +86,7 @@ export function UserManager({ users, currentUserId }: UserManagerProps) {
       role: user.role,
       bio: user.bio ?? '',
       image: user.image ?? '',
+      imagePosition: user.imagePosition ?? '',
       active: user.active,
     });
     setEditing(user);
@@ -356,6 +360,12 @@ export function UserManager({ users, currentUserId }: UserManagerProps) {
               value={form.image}
               onChange={(url) => setForm({ ...form, image: url })}
               hint="Aparece no rodapé dos artigos assinados. Quadrada fica melhor."
+            />
+
+            <AvatarPosition
+              src={form.image}
+              value={form.imagePosition}
+              onChange={(imagePosition) => setForm({ ...form, imagePosition })}
             />
 
             <div className="flex items-center justify-between gap-4 rounded-md border border-border p-3.5">

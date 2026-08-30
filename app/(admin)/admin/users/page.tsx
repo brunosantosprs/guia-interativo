@@ -23,6 +23,7 @@ export default async function AdminUsersPage() {
         email: true,
         role: true,
         image: true,
+        imagePosition: true,
         bio: true,
         active: true,
         createdAt: true,

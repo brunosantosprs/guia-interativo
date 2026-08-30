@@ -31,6 +31,10 @@ model User {
   emailVerified DateTime?
   password      String? // hash bcrypt (login por credenciais)
   image         String?
+  /// Recorte da foto no avatar, como "50% 30%" (object-position do CSS).
+  /// A foto entra num circulo e e cortada; sem isso o corte e sempre pelo
+  /// centro, o que decepa a cabeca de quem posou fora do meio do quadro.
+  imagePosition String?
   bio           String?   @db.Text
   role          Role      @default(AUTHOR)
   active        Boolean   @default(true)
