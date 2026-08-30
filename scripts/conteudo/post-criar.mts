@@ -4,7 +4,7 @@ import { prisma } from '../../lib/prisma';
 /**
  * Cria um post novo a partir de um arquivo JSON com a ficha e um .md com o corpo.
  *
- * uso: npm run post:criar -- <ficha.json> [--aplicar]
+ * uso: npm run post:criar -- <ficha.json> [--rascunho] [--aplicar]
  *
  * Formato da ficha:
  *   {
@@ -53,6 +53,7 @@ async function main() {
   const [arquivo, ...flags] = process.argv.slice(2);
   if (!arquivo) throw new Error('uso: npm run post:criar -- <ficha.json> [--aplicar]');
 
+  const rascunho = flags.includes('--rascunho');
   const f = JSON.parse(readFileSync(arquivo, 'utf8')) as Ficha;
   const corpo = readFileSync(f.corpo, 'utf8').trim();
 
@@ -75,6 +76,7 @@ async function main() {
   console.log(`${f.title}`);
   console.log(`  slug:      /blog/${f.slug}`);
   console.log(`  categoria: ${categoria.name}`);
+  console.log(`  status:    ${rascunho ? 'RASCUNHO (nao aparece no site)' : 'PUBLICADO'}`);
   console.log(`  corpo:     ${palavras} palavras | ${secoes} secoes | ${tabelas} tabelas | ${links} links | FAQ ${temFaq ? 'sim' : 'NAO'}`);
   console.log(`  metaTitle: ${(f.metaTitle ?? '').length}/70`);
   console.log(`  metaDesc:  ${(f.metaDescription ?? '').length}/170`);
@@ -97,8 +99,13 @@ async function main() {
       title: f.title,
       excerpt: f.excerpt,
       content: corpo,
-      status: 'PUBLISHED',
-      publishedAt: new Date(),
+      /**
+       * Rascunho nao aparece no blog nem no sitemap — util para escrever a
+       * serie inteira antes de subir as capas. Publicar depois e um clique
+       * no painel, ou o mesmo comando sem --rascunho.
+       */
+      status: rascunho ? 'DRAFT' : 'PUBLISHED',
+      publishedAt: rascunho ? null : new Date(),
       readingMinutes: Math.max(1, Math.round(palavras / 200)),
       metaTitle: f.metaTitle,
       metaDescription: f.metaDescription,
@@ -124,7 +131,11 @@ async function main() {
     },
   });
 
-  console.log(`\nOK: publicado em /blog/${f.slug}`);
+  console.log(
+    rascunho
+      ? `\nOK: rascunho criado — /blog/${f.slug} (nao aparece no site ate ser publicado)`
+      : `\nOK: publicado em /blog/${f.slug}`,
+  );
 }
 
 main()
