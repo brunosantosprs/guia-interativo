@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Field } from '@/components/admin/form-fields';
+import { ImageField } from '@/components/admin/image-field';
 import { useToast } from '@/hooks/use-toast';
 import type { Role } from '@prisma/client';
 
@@ -342,14 +343,20 @@ export function UserManager({ users, currentUserId }: UserManagerProps) {
               />
             </Field>
 
-            <Field label="URL do avatar" htmlFor="user-image">
-              <Input
-                id="user-image"
-                value={form.image}
-                onChange={(event) => setForm({ ...form, image: event.target.value })}
-                placeholder="/images/autores/arquivo.svg"
-              />
-            </Field>
+            {/*
+              Mesmo campo dos outros formulários do painel: envia o arquivo,
+              abre a biblioteca de mídia e ainda aceita colar uma URL. Antes
+              aqui só cabia o caminho digitado, o que obrigava a subir a foto
+              por outra tela e voltar com o endereço na mão.
+            */}
+            <ImageField
+              label="Foto do autor"
+              folder="autores"
+              aspect="square"
+              value={form.image}
+              onChange={(url) => setForm({ ...form, image: url })}
+              hint="Aparece no rodapé dos artigos assinados. Quadrada fica melhor."
+            />
 
             <div className="flex items-center justify-between gap-4 rounded-md border border-border p-3.5">
               <div>
