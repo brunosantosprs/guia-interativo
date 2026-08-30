@@ -171,7 +171,7 @@ export const ESPECIALISTA = {
   nome: 'Josimar Tavares',
   primeiroNome: 'Josimar',
   titulo: 'Instalador e consultor de cortinas e persianas',
-  anosDeExperiencia: 22,
+  anosDeExperiencia: 12,
   clientesAtendidos: 5000,
   /**
    * Contato direto do Josimar — diferente do WhatsApp geral do site, que

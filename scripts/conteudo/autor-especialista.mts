@@ -20,7 +20,7 @@ import { ESPECIALISTA } from '../../lib/constants';
 const EMAIL = 'josimar@guiainterativo.com';
 
 const BIO =
-  'Trabalho com cortina e persiana há mais de 22 anos — medindo, instalando ' +
+  'Trabalho com cortina e persiana há mais de 12 anos — medindo, instalando ' +
   'e consertando o que catálogo nenhum explica. Já passei de cinco mil casas ' +
   'nesse tempo, e quase tudo que escrevo aqui saiu de erro que vi de perto: a ' +
   'janela medida no lugar errado, o blackout que vazava luz pela lateral, a ' +
