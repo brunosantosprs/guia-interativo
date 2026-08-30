@@ -65,7 +65,11 @@ const segredo = () => randomBytes(32).toString('base64');
 const DESTINOS = [
   { nome: 'DATABASE_URL', origem: 'env', ambientes: ['production', 'preview'] },
   { nome: 'DIRECT_URL', origem: 'env', ambientes: ['production', 'preview'] },
-  { nome: 'NEXT_PUBLIC_SUPABASE_URL', origem: 'env', ambientes: ['production', 'preview'] },
+  // Sem o prefixo NEXT_PUBLIC_ de proposito: a URL so e usada no servidor
+  // (lib/storage.ts). Com o prefixo, o Next substitui o valor no build, e
+  // uma variavel marcada como "Secret" na Vercel nao existe nessa etapa —
+  // o upload quebra em producao mesmo com tudo cadastrado.
+  { nome: 'SUPABASE_URL', origem: 'env', de: 'NEXT_PUBLIC_SUPABASE_URL', ambientes: ['production', 'preview'] },
   { nome: 'SUPABASE_SERVICE_ROLE_KEY', origem: 'env', ambientes: ['production', 'preview'] },
   { nome: 'NEXTAUTH_SECRET', origem: 'gerar', ambientes: ['production', 'preview'] },
   { nome: 'REVALIDATE_SECRET', origem: 'gerar', ambientes: ['production', 'preview'] },
@@ -108,9 +112,10 @@ const impedimentos = [];
 for (const destino of DESTINOS) {
   if (destino.origem !== 'env' || destino.opcional) continue;
 
-  const valor = env[destino.nome];
+  // `de` permite renomear na Vercel uma variavel que tem outro nome no .env.
+  const valor = env[destino.de ?? destino.nome];
   if (!valor) {
-    impedimentos.push(`${destino.nome} esta vazia no .env local.`);
+    impedimentos.push(`${destino.de ?? destino.nome} esta vazia no .env local.`);
     continue;
   }
 
@@ -144,7 +149,7 @@ for (const destino of DESTINOS) {
       ? segredo()
       : destino.origem === 'url'
         ? urlProducao
-        : env[destino.nome];
+        : env[destino.de ?? destino.nome];
 
   if (!valor) {
     console.log(`  - ${destino.nome.padEnd(28)} sem valor no .env, pulada`);

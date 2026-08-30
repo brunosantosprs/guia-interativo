@@ -73,11 +73,38 @@ export class UploadValidationError extends Error {
   }
 }
 
+/**
+ * Endereco do projeto no Supabase.
+ *
+ * Aceita dois nomes, e a ordem importa. SUPABASE_URL vem primeiro porque
+ * este modulo so roda no servidor e nao precisa do prefixo NEXT_PUBLIC_.
+ *
+ * O prefixo, alias, ja custou caro: variavel NEXT_PUBLIC_ e substituida
+ * pelo valor durante o BUILD, enquanto variavel marcada como "Secret" na
+ * Vercel so existe em EXECUCAO. Cadastrada como Secret, ela chega vazia ao
+ * codigo compilado, e o upload falha em producao dizendo que a variavel
+ * nao foi definida — mesmo com ela cadastrada e visivel no painel.
+ *
+ * Mantemos NEXT_PUBLIC_SUPABASE_URL como alternativa para nao quebrar
+ * quem ja tem o .env antigo.
+ */
+function lerUrl(): string | undefined {
+  return process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+}
+
 /** Erro de configuração ausente, separado para virar mensagem clara na API. */
 export class StorageNotConfiguredError extends Error {
   constructor() {
+    const faltando = [
+      lerUrl() ? null : 'SUPABASE_URL (ou NEXT_PUBLIC_SUPABASE_URL)',
+      process.env.SUPABASE_SERVICE_ROLE_KEY ? null : 'SUPABASE_SERVICE_ROLE_KEY',
+    ].filter(Boolean);
+
     super(
-      'Upload indisponível: defina NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY no .env.',
+      `Upload indisponível: falta ${faltando.join(' e ')}. ` +
+        'Em produção, confira também se a variável não está marcada como ' +
+        '"Secret" na Vercel — variável NEXT_PUBLIC_ precisa ser do tipo "Config" ' +
+        'para existir durante o build.',
     );
     this.name = 'StorageNotConfiguredError';
   }
@@ -88,7 +115,7 @@ let cached: SupabaseClient | null = null;
 function getClient(): SupabaseClient {
   if (cached) return cached;
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url = lerUrl();
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !key) throw new StorageNotConfiguredError();
@@ -102,7 +129,7 @@ function getClient(): SupabaseClient {
 
 /** Indica se o upload está habilitado, sem lançar erro. */
 export function isStorageConfigured(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return Boolean(lerUrl() && process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
 /**

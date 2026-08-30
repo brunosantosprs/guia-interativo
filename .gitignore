@@ -27,3 +27,6 @@ vercel.env
 
 # Copias de seguranca de conteudo (geradas antes de editar posts)
 .backups-conteudo/
+
+# Utilitarios temporarios de analise, criados durante uma sessao
+scripts/tmp/
