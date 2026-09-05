@@ -197,6 +197,9 @@
   /* Container editorial com largura de leitura confortavel */
   .prose-editorial {
     @apply text-[1.0625rem] leading-[1.85] text-foreground/85;
+    /* Uma URL longa colada no artigo pelo painel nao tem onde quebrar e
+       empurraria a coluna inteira no celular. */
+    overflow-wrap: break-word;
   }
 
   .prose-editorial h2 {

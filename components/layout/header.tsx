@@ -139,7 +139,15 @@ export function Header({ siteName, logoUrl, whatsapp, whatsappMessage }: HeaderP
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-background pt-[72px] lg:hidden"
+            /**
+             * `overflow-y-auto`: com o menu aberto a rolagem do corpo fica
+             * travada, entao quem precisa rolar e este painel. Sem isso, em
+             * tela baixa — celular deitado, principalmente — os ultimos itens
+             * e o botao do WhatsApp ficam abaixo da dobra e simplesmente nao
+             * ha como alcanca-los. Medido: 606px de conteudo em 375px de
+             * altura.
+             */
+            className="fixed inset-0 z-40 overflow-y-auto overscroll-contain bg-background pt-[72px] lg:hidden"
           >
             <nav className="container flex flex-col py-8" aria-label="Navegação mobile">
               {MAIN_NAV.map((item, index) => (
