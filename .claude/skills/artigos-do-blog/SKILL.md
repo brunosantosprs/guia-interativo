@@ -194,6 +194,48 @@ Varie o tamanho dos parágrafos. Sequência de parágrafos com a mesma extensão
 e a mesma cadência é o que faz o texto soar mecânico, mesmo sem nenhuma
 palavra proibida.
 
+### O registro é falado, não redigido
+
+Decisão do dono do site: o texto soa como conversa de balcão, não como
+manual. Escreva a frase que você diria em pé na frente da janela do cliente,
+não a que escreveria num laudo.
+
+O que isso libera, e que antes o texto evitava:
+
+- **"pra" no lugar de "para"** quando a frase é fala. `Dá pra conferir em
+  dez segundos` lê melhor que `É possível conferir em dez segundos`.
+- **Frase sem verbo, de propósito.** `Cabo cede. Sempre.` A pausa carrega
+  ênfase que a frase completa dilui.
+- **Primeira pessoa da experiência.** `A reclamação que eu mais ouço nesse
+  tipo de janela é...`, `Já vi isso acontecer em obra entregue`.
+- **Fala do cliente entre aspas.** `"Fechei tudo e continuou quente."`
+  Vale mais que descrever o sintoma em terceira pessoa.
+- **Pergunta retórica**, com parcimônia. `Mas quem lê manual de persiana?`
+- **Repetição como ênfase.** `Ninguém sobe de escada duas vezes por dia.
+  Ninguém.`
+
+O que continua fora, e não mudou:
+
+Gíria datada, emoji, exclamação, e qualquer coisa que soe a vendedor. O
+registro é de profissional experiente falando sem formalidade — não de
+locutor animado. Coloquial não é motivo para perder número, unidade ou
+mecanismo: a informação técnica continua inteira.
+
+Comparação, mesma informação nos dois registros:
+
+```
+Redigido: Recomenda-se verificar periodicamente a tensão dos cabos, uma
+vez que estes tendem a ceder ao longo do tempo, o que compromete o
+posicionamento do painel.
+
+Falado:   Os cabos cedem. Uns milímetros ao longo dos anos, e o painel
+          começa a barrigar no meio. Dá pra conferir em dez segundos:
+          feche a peça inteira e olhe contra a luz.
+```
+
+O segundo é mais longo em palavras e mais curto em esforço de leitura. É
+esse o alvo.
+
 ## Estrutura
 
 Alvo de **2.000 a 2.400 palavras**. Abaixo de 2.000 o artigo não passa na
