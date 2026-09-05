@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, type RefObject } from 'react';
+import { useEffect, useId, useState, type RefObject } from 'react';
+import { concluirAnuncio, registrarAnuncio } from '@/lib/ad-loading-store';
 
 /**
  * Estado de um bloco de anúncio.
@@ -23,6 +24,25 @@ export type AdStatus = 'carregando' | 'preenchido' | 'vazio';
 
 /** Depois disso, assume-se que nao vem anuncio nenhum. */
 const ESPERA_MAXIMA_MS = 6000;
+
+/**
+ * Mantem o registro central em dia enquanto o bloco nao resolve.
+ *
+ * A tela de carregamento da troca de pagina le esse registro para saber
+ * quanto tempo ficar em cena. Como o bloco pode desmontar antes de
+ * resolver — o leitor clicando em outro link no meio —, o cleanup tambem
+ * conclui, senao a contagem ficaria presa e a tela nunca sairia.
+ */
+function useRegistroDeCarregamento(status: AdStatus) {
+  const id = useId();
+
+  useEffect(() => {
+    if (status === 'carregando') registrarAnuncio(id);
+    else concluirAnuncio(id);
+  }, [id, status]);
+
+  useEffect(() => () => concluirAnuncio(id), [id]);
+}
 
 /**
  * Observa o atributo data-ad-status que o AdSense grava na tag <ins>.
@@ -62,6 +82,8 @@ export function useAdSenseStatus(ref: RefObject<HTMLElement | null>): AdStatus {
       window.clearTimeout(limite);
     };
   }, [ref]);
+
+  useRegistroDeCarregamento(status);
 
   return status;
 }
@@ -115,6 +137,8 @@ export function useAdManagerStatus(divId: string): AdStatus {
       });
     };
   }, [divId]);
+
+  useRegistroDeCarregamento(status);
 
   return status;
 }
