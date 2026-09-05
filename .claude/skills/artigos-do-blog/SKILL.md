@@ -35,6 +35,15 @@ Os problemas que mais denunciavam escrita de máquina não eram os clichês
 | Fórmula "não é X, é Y" | 52 em 78 textos | **1 por artigo** |
 | Conectivo formal ("Além disso", "Sobretudo") | — | **até 2** |
 | Frase-gancho de fórmula | "A consequência prática:" em 14 artigos | **1, e variada** |
+| Parágrafo abrindo com **rótulo.** | 51% dos parágrafos | **até 35%, mire 20%** |
+| Frases de 23 palavras ou mais | 11% do texto | **pelo menos 15%** |
+| Frases de até 8 palavras | — | **pelo menos 12%** |
+
+As três últimas linhas são de uma segunda auditoria, feita depois que a
+limpeza de palavras já tinha acontecido. Elas existem porque a limpeza
+lexical resolveu o vocabulário e não tocou no que sobrou: **o ritmo e o
+molde**. Um texto pode passar em todas as regras de palavra e continuar
+soando mecânico.
 
 ### O travessão é o pior deles
 
@@ -62,6 +71,76 @@ Abrir parágrafo com um rótulo em negrito ajuda a escanear. O problema é
 repetir o **mesmo** rótulo entre artigos. Varie: "Na prática:", "O que isso
 muda:", "Traduzindo para a sua janela:", "O efeito disso:", "Onde isso
 aparece:".
+
+### O molde "**Coisa.** explicação"
+
+Este é o tique que sobreviveu à limpeza de palavras, e hoje é o mais grave
+do acervo: **51% dos parágrafos** abrem com um rótulo em negrito, e os piores
+artigos chegam a 65%. Metade do texto deixa de ser prosa e vira lista
+disfarçada.
+
+Ele nasce de uma intenção boa, a de facilitar o escaneamento. O custo é que
+seção após seção fica com a mesma silhueta, e é justamente essa repetição de
+forma que os detectores pontuam, mesmo sem nenhuma palavra proibida.
+
+Ruim, três parágrafos seguidos:
+
+```
+**O sal.** O aerossol marinho deposita cloreto nas superfícies.
+**A umidade.** Fibra natural absorve, demora a secar e mofa.
+**O vento.** Bate a peça contra o caixilho e força o mecanismo.
+```
+
+Bom, o mesmo conteúdo com um rótulo só:
+
+```
+O aerossol marinho deposita cloreto em tudo, e o sal é higroscópico: ele
+puxa umidade do ar, então o tecido salgado nunca seca de verdade. A fibra
+natural sofre duas vezes com isso, porque absorve e demora a secar.
+
+**O vento é o que ninguém antecipa.** Ele bate a peça contra o caixilho o
+dia inteiro, e é ele que arranca lâmina e desgasta cordão.
+```
+
+Use o negrito onde a etiqueta realmente ajuda alguém a achar o trecho depois.
+Em uma seção com três blocos, isso costuma ser um, não três.
+
+### O ritmo, que é o tique mais difícil de ver
+
+Prosa humana alterna frase de quatro palavras com frase de trinta e cinco.
+Texto gerado tende a uma faixa estreita, e o resultado tem cadência de
+metrônomo: o leitor não sabe apontar o que está errado, só sente.
+
+Medido nos 18 artigos escritos sob a primeira versão deste padrão: 88% das
+frases ficam entre 1 e 22 palavras, e **só 1,6% passam de 33**. A limpeza do
+travessão contribuiu para isso, porque o travessão estava emendando orações;
+tirado ele, as orações viraram frases curtas separadas.
+
+O que fazer ao revisar:
+
+- **Deixe algumas frases correrem.** Frase longa é onde cabe raciocínio
+  subordinado, com "porque", "que", "enquanto". É o que a máquina evita.
+- **Corte outras pela metade.** Uma frase de quatro palavras depois de uma
+  longa é o que dá respiro.
+- **Leia em voz alta um bloco inteiro.** Se você respira sempre no mesmo
+  intervalo, o ritmo está travado.
+
+Não persiga a média: persiga a **variação**. Um texto de frases todas médias
+é pior que um com frases muito curtas e muito longas misturadas.
+
+### As muletas que só aparecem no conjunto
+
+Um artigo sozinho não denuncia nada. Vinte artigos com a mesma amarração
+denunciam. Medido nos 18: `do jeito descrito em` aparece em 10 deles,
+`é a solução mais` em 6, e 44 frases começam com `Vale` alguma coisa.
+
+São as pontes que a gente usa sem pensar para chegar num link interno ou
+para emendar um parágrafo no seguinte. Cada uma passa; juntas, viram
+assinatura. Quando for linkar, diga a coisa de um jeito diferente a cada vez,
+ou simplesmente linke a palavra dentro da frase que você já escreveu.
+
+Duas aberturas de frase merecem contagem própria, porque são as mais fáceis
+de repetir: `Vale...` e `É importante...`. Uma por artigo já é bastante.
 
 ## O que nunca entra
 
@@ -129,10 +208,27 @@ auditoria do projeto.
 4. **Um passo a passo numerado**, quando houver procedimento.
 5. **8 a 14 links internos** para outros guias e para as fichas em
    `/tipos-de-cortinas/`. Cheque os slugs: link quebrado reprova.
-6. **"O que definir antes de comprar"** — lista de 10 itens acionáveis.
-7. **"## Perguntas frequentes"** com 8 pares. O título exato importa: é ele
-   que o site usa para gerar os dados estruturados do Google. Pergunta em
+6. **Uma lista de itens acionáveis** perto do fim, com o título que fizer
+   sentido para aquele assunto. Entre 6 e 12 itens, conforme o tema pedir.
+7. **"## Perguntas frequentes"** com 6 a 10 pares. O título exato importa: é
+   ele que o site usa para gerar os dados estruturados do Google. Pergunta em
    `**negrito**`, resposta em 2-4 frases logo abaixo.
+
+### Não transforme a estrutura em fôrma
+
+Os números acima são faixas, e faixa serve para ser usada por inteiro. Nos 18
+artigos escritos sob a primeira versão deste padrão isso não aconteceu:
+**todos os 18 saíram com exatamente 8 pares de FAQ**, 12 deles com exatamente
+11 seções, e 16 com exatamente uma lista de exatamente 10 itens. O desvio de
+seções entre eles foi de 0,7, contra 2,8 no acervo escrito antes do padrão.
+
+Quem lê um artigo não percebe. Quem lê três seguidos sente a fôrma, e é
+assim que a maioria dos leitores chega: por um link interno, vindo de outro
+artigo do site.
+
+O antídoto é deixar o assunto decidir. Um tema simples fecha em 8 seções e 6
+perguntas; um tema espinhoso pede 13 seções e 10 perguntas. Se você está
+contando itens para bater um número, o número está mandando no texto.
 
 Não escreva assinatura nem chamada para WhatsApp no corpo. O bloco do autor
 com o contato entra sozinho no rodapé de todo artigo.

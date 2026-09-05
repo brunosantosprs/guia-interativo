@@ -142,17 +142,26 @@ const RE_ROTULO_LINHA = /^\*\*[^*\n]{1,60}\*\*(?=[\s,.:;!?]|$)/;
 const RE_SECAO_FAQ = /^#{1,6}\s.*(perguntas frequentes|d[uú]vidas frequentes|faq)/i;
 
 /**
- * Acima desta fracao de linhas de corpo abrindo com **rotulo.**, o texto le
- * como lista de maquina. 0.30 pega os textos claramente moldados (a metade
- * superior do acervo, cuja mediana de fato e 28%); artigo novo deve mirar
- * <= 0.15, usando o negrito so onde a etiqueta realmente ajuda a escanear.
+ * Acima desta fracao de PARAGRAFOS abrindo com **rotulo.**, o texto le como
+ * lista de maquina disfarcada de prosa.
+ *
+ * 0.35 e o teto; a mira ao escrever e 0.20. Os numeros saem de medir o
+ * acervo: no estado atual a media e 51% dos paragrafos, e os piores textos
+ * chegam a 65%. Ou seja, o acervo inteiro esta acima do teto — e proposital
+ * que ele acuse, porque esse e o tique estrutural que sobrou depois da
+ * limpeza lexical.
  */
-const ROTULO_FRACAO_MAX = 0.3;
+const ROTULO_FRACAO_MAX = 0.35;
 
 /**
- * Conta, fora da secao de FAQ, quantas linhas de corpo abrem com rotulo em
- * negrito e quantas linhas de corpo existem (fora de titulo, tabela, citacao e
- * regua). A fracao entre as duas e o sinal — independente do tamanho do texto.
+ * Conta, fora da secao de FAQ, quantos PARAGRAFOS abrem com rotulo em negrito
+ * e quantos paragrafos existem.
+ *
+ * O denominador so pode conter prosa. A primeira versao contava tambem as
+ * linhas de lista, que sao muitas em artigo com passo a passo, e o excesso de
+ * rotulo ficava diluido: um texto com 51% dos paragrafos moldados aparecia
+ * abaixo de 30% e passava. Lista, tabela, titulo, citacao e regua saem da
+ * conta; sobra o que a pessoa le corrido, que e onde o molde incomoda.
  */
 function densidadeRotulo(texto: string): { rotulos: number; corpo: number } {
   const linhas = texto.split('\n');
@@ -167,18 +176,73 @@ function densidadeRotulo(texto: string): { rotulos: number; corpo: number } {
   let corpo = 0;
   for (let i = 0; i < faqDe; i++) {
     const t = linhas[i].trim();
-    if (!t || /^#{1,6}\s/.test(t) || /^\|/.test(t) || /^>/.test(t) || /^[-=]{3,}$/.test(t)) continue;
+    if (
+      !t ||
+      /^#{1,6}\s/.test(t) ||
+      /^\|/.test(t) ||
+      /^>/.test(t) ||
+      /^[-=]{3,}$/.test(t) ||
+      /^([-*]|\d+\.)\s/.test(t)
+    ) {
+      continue;
+    }
     corpo++;
     if (RE_ROTULO_LINHA.test(linhas[i])) rotulos++;
   }
   return { rotulos, corpo };
 }
 
-/** Descarta tabela, lista e titulo: sobra o texto que a pessoa le corrido. */
+/**
+ * Variedade no tamanho das frases.
+ *
+ * O tique que sobra depois de tirar as palavras proibidas e o ritmo. Prosa
+ * humana alterna frase de tres palavras com frase de trinta e cinco; texto
+ * gerado tende a uma faixa estreita, e a leitura fica com cadencia de metronomo.
+ *
+ * Medido no acervo: as frases se concentram entre 7 e 22 palavras, e as frases
+ * longas (23 ou mais) sao 11,5% do total nos 18 artigos escritos sob o padrao
+ * atual. O alvo e pelo menos 15%, com pelo menos uma frase de 33 palavras ou
+ * mais a cada mil palavras de texto — nao para encher linguica, e sim porque
+ * frase longa e onde cabe raciocinio subordinado, que e o que a maquina evita.
+ *
+ * O contrario tambem conta: sem frase curta o texto vira palestra. Por isso a
+ * conta olha as duas pontas.
+ */
+const FRACAO_LONGAS_MIN = 0.15;
+const FRACAO_CURTAS_MIN = 0.12;
+
+function ritmoDeFrase(texto: string): { longas: number; curtas: number; total: number } {
+  const corrido = apenasCorrido(texto)
+    .replace(/\*\*/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+
+  const frases = corrido
+    .split(/(?<=[.!?])\s+/)
+    .map((f) => f.trim().split(/\s+/).filter(Boolean).length)
+    .filter((n) => n >= 2);
+
+  return {
+    longas: frases.filter((n) => n >= 23).length,
+    curtas: frases.filter((n) => n <= 8).length,
+    total: frases.length,
+  };
+}
+
+/**
+ * Descarta tabela, lista e titulo: sobra o texto que a pessoa le corrido.
+ *
+ * O filtro de lista exige a SINTAXE de lista — o marcador seguido de espaco
+ * ("- item", "1. item"). A primeira versao descartava qualquer linha que
+ * comecasse com "-", "*" ou digito, e com isso jogava fora todo paragrafo
+ * aberto com rotulo em negrito, que comeca com "**". Como metade dos
+ * paragrafos do acervo abre assim, metade do texto ficava invisivel para as
+ * contagens: travessao dentro desses paragrafos nunca era contado, e a
+ * medida de ritmo enxergava um terco das frases.
+ */
 function apenasCorrido(texto: string): string {
   return texto
     .split('\n')
-    .filter((l) => !/^\s*[|>#]/.test(l) && !/^\s*[-*\d]/.test(l))
+    .filter((l) => !/^\s*[|>#]/.test(l) && !/^\s*([-*+]|\d+[.)])\s/.test(l))
     .join('\n');
 }
 
@@ -238,6 +302,34 @@ function auditar(rotulo: string, texto: string): number {
     linhas.push(
       `      vire prosa corrida; mire ~${alvo} rotulos, negrito so onde a etiqueta ajuda`,
     );
+  }
+
+  // Piso de 40 frases: abaixo disso a proporcao oscila demais para significar algo.
+  const ritmo = ritmoDeFrase(texto);
+  if (ritmo.total >= 40) {
+    const fLongas = ritmo.longas / ritmo.total;
+    const fCurtas = ritmo.curtas / ritmo.total;
+
+    if (fLongas < FRACAO_LONGAS_MIN) {
+      reprovas++;
+      linhas.push(
+        `  ${ritmo.longas} de ${ritmo.total} frases longas  (${Math.round(fLongas * 100)}%, minimo ${Math.round(FRACAO_LONGAS_MIN * 100)}%)`,
+      );
+      linhas.push(
+        `      faixa estreita de tamanho e cadencia de metronomo: o tique que sobra`,
+      );
+      linhas.push(
+        `      depois das palavras. Deixe algumas frases correrem, com subordinada`,
+      );
+    }
+
+    if (fCurtas < FRACAO_CURTAS_MIN) {
+      reprovas++;
+      linhas.push(
+        `  ${ritmo.curtas} de ${ritmo.total} frases curtas  (${Math.round(fCurtas * 100)}%, minimo ${Math.round(FRACAO_CURTAS_MIN * 100)}%)`,
+      );
+      linhas.push(`      sem frase curta o texto vira palestra. Corte uma em duas`);
+    }
   }
 
   if (reprovas === 0) {
