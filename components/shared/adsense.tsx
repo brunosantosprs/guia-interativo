@@ -63,7 +63,20 @@ export function AdSenseSlot({ slot, clientId, format, minHeight }: AdSenseSlotPr
       data-ad-client={clientId}
       data-ad-slot={slot}
       data-ad-format={format}
-      data-full-width-responsive="true"
+      /**
+       * `false` de proposito.
+       *
+       * Com `true`, o AdSense expande o anuncio ate a largura da TELA no
+       * celular, ignorando a coluna de texto em que ele esta. O resultado
+       * medido aqui foi um anuncio de 375px dentro de uma coluna de 335px:
+       * ou ele alarga a pagina inteira, ou ele aparece cortado — e anuncio
+       * cortado e problema de politica, nao so de layout.
+       *
+       * Com `false`, o anuncio se ajusta a coluna. Ela tem 335px no celular,
+       * acima do minimo de 250px que os formatos fluidos exigem, entao
+       * continuam sendo servidos normalmente.
+       */
+      data-full-width-responsive="false"
     />
   );
 }

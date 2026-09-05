@@ -134,6 +134,17 @@
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: 'cv11', 'ss01';
     text-rendering: optimizeLegibility;
+    /**
+     * Rede de seguranca, nao a correcao.
+     *
+     * Um unico elemento largo demais (tabela, anuncio, imagem) alarga a
+     * pagina inteira, e o sintoma no celular e cruel de diagnosticar: o
+     * conteudo parece certo, mas o fundo das secoes e as imagens param antes
+     * da borda direita. `clip` corta esse excesso sem criar um container de
+     * rolagem, entao o `position: sticky` do sumario e da barra lateral
+     * continua funcionando — o que `overflow-x: hidden` quebraria.
+     */
+    overflow-x: clip;
   }
 
   h1,
@@ -229,16 +240,30 @@
     @apply my-8 border-l-2 border-accent bg-surface px-6 py-4 font-serif text-lg italic text-foreground/80;
   }
 
+  /* Container de rolagem das tabelas, criado em `markdownToHtml`.
+     Sem ele, a largura minima da tabela alarga a coluna do artigo e, por
+     consequencia, a pagina inteira no celular. */
+  .prose-editorial .table-scroll {
+    @apply my-8 -mx-5 max-w-[calc(100%+2.5rem)] overflow-x-auto px-5 sm:mx-0 sm:max-w-full sm:px-0;
+    min-width: 0;
+    overscroll-behavior-x: contain;
+  }
+
   .prose-editorial table {
-    @apply my-8 w-full border-collapse text-sm;
+    @apply w-full border-collapse text-sm;
+  }
+
+  /* A tabela dentro do container ja tem margem propria */
+  .prose-editorial .table-scroll > table {
+    @apply my-0;
   }
 
   .prose-editorial th {
-    @apply border-b border-border bg-surface px-4 py-3 text-left font-semibold;
+    @apply whitespace-nowrap border-b border-border bg-surface px-3 py-2.5 text-left font-semibold sm:px-4 sm:py-3;
   }
 
   .prose-editorial td {
-    @apply border-b border-border px-4 py-3 align-top;
+    @apply border-b border-border px-3 py-2.5 align-top sm:px-4 sm:py-3;
   }
 
   .prose-editorial code {

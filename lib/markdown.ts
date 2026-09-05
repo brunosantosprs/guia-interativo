@@ -30,6 +30,8 @@ const SAFE_SCHEMES = ['http:', 'https:', 'mailto:', 'tel:'];
 
 const HEADING_TAG = /<(h2|h3)>([\s\S]*?)<\/\1>/g;
 
+const TABLE_TAG = /<table>([\s\S]*?)<\/table>/g;
+
 /**
  * Decide se uma URL pode ficar no documento.
  *
@@ -91,7 +93,16 @@ export function markdownToHtml(markdown: string): string {
       HEADING_TAG,
       (_match, tag: string, inner: string) =>
         `<${tag} id="${headingId(inner)}">${inner}</${tag}>`,
-    );
+    )
+    /**
+     * Tabela comparativa de 4 a 6 colunas nao cabe em tela de celular, e ela
+     * nao encolhe: a largura minima do conteudo vira a largura minima da
+     * coluna do artigo, que por sua vez alarga a pagina inteira. O efeito
+     * visivel nao e a tabela cortada — e o fundo das secoes e as imagens
+     * parando antes da borda direita, porque a pagina ficou mais larga que a
+     * tela. Envolver em um container com rolagem propria isola esse minimo.
+     */
+    .replace(TABLE_TAG, (match) => `<div class="table-scroll">${match}</div>`);
 }
 
 export interface Heading {

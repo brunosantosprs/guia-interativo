@@ -203,7 +203,7 @@ export default async function CurtainTypePage({ params }: SlugParams) {
       {/* ============ CONTEÚDO ============ */}
       <section className="container py-14 md:py-20">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
-          <div className="lg:col-span-8">
+          <div className="min-w-0 lg:col-span-8">
             {/* Descrição rica */}
             <article className="prose-editorial">
               <h2 className="!mt-0">Como funciona e o que esperar</h2>
@@ -339,7 +339,7 @@ export default async function CurtainTypePage({ params }: SlugParams) {
           </div>
 
           {/* ============ SIDEBAR ============ */}
-          <aside className="lg:col-span-4">
+          <aside className="min-w-0 lg:col-span-4">
             <div className="lg:sticky lg:top-24 lg:space-y-6">
               <div className="rounded-lg border border-border bg-background p-6">
                 <h2 className="font-serif text-lg">Ficha técnica</h2>

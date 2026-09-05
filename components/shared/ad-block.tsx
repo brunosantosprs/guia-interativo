@@ -39,7 +39,9 @@ function Moldura({
   children: React.ReactNode;
 }) {
   return (
-    <aside className={cn('w-full', className)} aria-label={label}>
+    // Ver o mesmo comentario em `ad-slot.tsx`: anuncio de largura fixa nao
+    // pode alargar a pagina.
+    <aside className={cn('w-full max-w-full overflow-hidden', className)} aria-label={label}>
       <p className="mb-1.5 text-center text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground/60">
         {label}
       </p>

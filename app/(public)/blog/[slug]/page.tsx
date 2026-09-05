@@ -241,14 +241,17 @@ export default async function BlogPostPage({ params }: SlugParams) {
       <div className="container py-14 md:py-16">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-14">
           {/* Sumário */}
-          <aside className="hidden lg:col-span-3 lg:block">
+          <aside className="hidden min-w-0 lg:col-span-3 lg:block">
             <div className="sticky top-24">
               <TableOfContents items={headings} />
             </div>
           </aside>
 
-          {/* Artigo */}
-          <article className="lg:col-span-6">
+          {/* Artigo.
+              `min-w-0`: item de grid nao encolhe abaixo da largura minima do
+              proprio conteudo. Sem isso, uma tabela larga alarga a coluna e
+              a pagina inteira no celular. */}
+          <article className="min-w-0 lg:col-span-6">
             <PostContent
               content={post.content}
               ads={ads}
@@ -299,7 +302,7 @@ export default async function BlogPostPage({ params }: SlugParams) {
           </article>
 
           {/* Sidebar */}
-          <aside className="lg:col-span-3">
+          <aside className="min-w-0 lg:col-span-3">
             <div className="space-y-8 lg:sticky lg:top-24">
               <AdSlot
                 position="sidebar"

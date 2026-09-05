@@ -60,7 +60,10 @@ export function AdSlot({
   }
 
   return (
-    <aside className={cn('w-full', className)} aria-label={label}>
+    // `max-w-full overflow-hidden`: o script do AdSense grava uma largura fixa
+    // em pixels no iframe. Se ela vier maior que a coluna, ela alarga a pagina
+    // inteira no celular em vez de estourar so o anuncio.
+    <aside className={cn('w-full max-w-full overflow-hidden', className)} aria-label={label}>
       <p className="mb-1.5 text-center text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground/60">
         {label}
       </p>
