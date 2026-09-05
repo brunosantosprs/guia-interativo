@@ -31,7 +31,8 @@
     "curtains:auditoria": "tsx scripts/conteudo/curtains-auditoria.mts",
     "vercel:env": "node scripts/vercel-env.mjs",
     "autor:especialista": "tsx scripts/conteudo/autor-especialista.mts",
-    "texto:auditar": "tsx scripts/conteudo/texto-auditar.mts"
+    "texto:auditar": "tsx scripts/conteudo/texto-auditar.mts",
+    "texto:exportar": "tsx scripts/conteudo/texto-exportar.mts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

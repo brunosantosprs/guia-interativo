@@ -30,3 +30,4 @@ vercel.env
 
 # Utilitarios temporarios de analise, criados durante uma sessao
 scripts/tmp/
+.conteudo-trabalho
