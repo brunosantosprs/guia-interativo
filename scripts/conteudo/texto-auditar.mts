@@ -119,6 +119,61 @@ const REGRAS: Regra[] = [
 const GANCHOS =
   /\*\*(A consequência prática|A conclusão prática|A regra prática|A regra que resolve|A pergunta que resolve|A pergunta que orienta|A leitura prática|A escolha resumida|O detalhe que passa batido):?\*\*:?/g;
 
+/**
+ * Linha abrindo com rotulo em negrito: "**Termica.** O texto segue...".
+ *
+ * Um ou outro rotulo ajuda a escanear. O problema e a densidade: num
+ * levantamento dos 96 textos do acervo, a mediana era 20 aberturas por artigo,
+ * cobrindo 28% das linhas de corpo e chegando a 56%. Secao apos secao no molde
+ * "**Coisa.** explicacao" vira lista de maquina disfarcada de prosa — e um dos
+ * padroes que os detectores de IA mais pontuam, mesmo sem nenhuma palavra
+ * proibida no texto.
+ *
+ * Casa a linha que COMECA com um negrito curto (o rotulo), seguido de espaco,
+ * virgula, pontuacao ou fim de linha. Detalhe que importa: o ponto/dois-pontos
+ * fica DENTRO do negrito ("**Termica.**"), entao NAO se exige pontuacao depois
+ * do fecho — foi esse o engano da primeira versao, que casava zero. Ignora
+ * bullet de verdade ("- **Item:** ...", lista legitima) porque exige que a
+ * linha comece no proprio "**".
+ */
+const RE_ROTULO_LINHA = /^\*\*[^*\n]{1,60}\*\*(?=[\s,.:;!?]|$)/;
+
+/** Inicio da secao de perguntas frequentes: la o formato "**Pergunta?**" e proposital. */
+const RE_SECAO_FAQ = /^#{1,6}\s.*(perguntas frequentes|d[uú]vidas frequentes|faq)/i;
+
+/**
+ * Acima desta fracao de linhas de corpo abrindo com **rotulo.**, o texto le
+ * como lista de maquina. 0.30 pega os textos claramente moldados (a metade
+ * superior do acervo, cuja mediana de fato e 28%); artigo novo deve mirar
+ * <= 0.15, usando o negrito so onde a etiqueta realmente ajuda a escanear.
+ */
+const ROTULO_FRACAO_MAX = 0.3;
+
+/**
+ * Conta, fora da secao de FAQ, quantas linhas de corpo abrem com rotulo em
+ * negrito e quantas linhas de corpo existem (fora de titulo, tabela, citacao e
+ * regua). A fracao entre as duas e o sinal — independente do tamanho do texto.
+ */
+function densidadeRotulo(texto: string): { rotulos: number; corpo: number } {
+  const linhas = texto.split('\n');
+  let faqDe = linhas.length;
+  for (let i = 0; i < linhas.length; i++) {
+    if (RE_SECAO_FAQ.test(linhas[i])) {
+      faqDe = i;
+      break;
+    }
+  }
+  let rotulos = 0;
+  let corpo = 0;
+  for (let i = 0; i < faqDe; i++) {
+    const t = linhas[i].trim();
+    if (!t || /^#{1,6}\s/.test(t) || /^\|/.test(t) || /^>/.test(t) || /^[-=]{3,}$/.test(t)) continue;
+    corpo++;
+    if (RE_ROTULO_LINHA.test(linhas[i])) rotulos++;
+  }
+  return { rotulos, corpo };
+}
+
 /** Descarta tabela, lista e titulo: sobra o texto que a pessoa le corrido. */
 function apenasCorrido(texto: string): string {
   return texto
@@ -165,6 +220,24 @@ function auditar(rotulo: string, texto: string): number {
     reprovas++;
     linhas.push(`  ${ganchos}x  frase-gancho de formula  (limite 1)`);
     linhas.push(`      varie: "Na pratica:", "O que isso muda:", "Traduzindo:"`);
+  }
+
+  const { rotulos, corpo } = densidadeRotulo(texto);
+  const fracRotulo = corpo ? rotulos / corpo : 0;
+  // Piso de 20 linhas de corpo: nao acusa fragmento curto, so texto de verdade.
+  if (corpo >= 20 && fracRotulo > ROTULO_FRACAO_MAX) {
+    reprovas++;
+    const pct = Math.round(fracRotulo * 100);
+    const alvo = Math.round(corpo * 0.15);
+    linhas.push(
+      `  ${rotulos}x  linha abrindo com **rotulo.**  (${pct}% do corpo, limite ${Math.round(ROTULO_FRACAO_MAX * 100)}%)`,
+    );
+    linhas.push(
+      `      secao apos secao no molde "**Coisa.** explicacao" soa a lista de maquina.`,
+    );
+    linhas.push(
+      `      vire prosa corrida; mire ~${alvo} rotulos, negrito so onde a etiqueta ajuda`,
+    );
   }
 
   if (reprovas === 0) {
