@@ -27,6 +27,28 @@ import { usePathname, useSearchParams } from 'next/navigation';
 const TETO_SIMULADO = 92;
 const INTERVALO_MS = 180;
 
+/**
+ * Largura com que a barra nasce.
+ *
+ * Comecou em 8% e era imperceptivel: um fiapo no canto esquerdo que
+ * desaparecia antes de o olho registrar. Numa rota estatica ja pre-carregada
+ * a navegacao inteira dura menos de 300 ms, entao a barra precisa nascer
+ * num tamanho que se enxergue de imediato.
+ */
+const LARGURA_INICIAL = 22;
+
+/**
+ * Tempo minimo em tela.
+ *
+ * Sem isso, navegacao rapida faz a barra piscar — aparece e some no mesmo
+ * quadro, e o efeito lido e de falha grafica, nao de carregamento. Com o
+ * piso, ou ela nao aparece, ou ela e vista.
+ */
+const MINIMO_VISIVEL_MS = 450;
+
+/** Tempo da transicao ate 100% antes de sumir. */
+const FECHAMENTO_MS = 260;
+
 export function RouteProgress() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -34,6 +56,7 @@ export function RouteProgress() {
   const [progresso, setProgresso] = useState(0);
   const [visivel, setVisivel] = useState(false);
   const timer = useRef<number | null>(null);
+  const inicio = useRef<number>(0);
 
   // Dispara no clique, antes de a navegação começar de fato.
   useEffect(() => {
@@ -57,8 +80,9 @@ export function RouteProgress() {
       if (destino.pathname === window.location.pathname && destino.search === window.location.search)
         return;
 
+      inicio.current = performance.now();
       setVisivel(true);
-      setProgresso(8);
+      setProgresso(LARGURA_INICIAL);
     }
 
     document.addEventListener('click', aoClicar, { capture: true });
@@ -83,17 +107,23 @@ export function RouteProgress() {
     };
   }, [visivel]);
 
-  // A rota mudou: completa e some.
+  // A rota mudou: completa e some, respeitando o tempo mínimo em tela.
   useEffect(() => {
     if (!visivel) return;
 
-    setProgresso(100);
-    const fim = window.setTimeout(() => {
+    const decorrido = performance.now() - inicio.current;
+    const esperar = Math.max(0, MINIMO_VISIVEL_MS - decorrido);
+
+    const completar = window.setTimeout(() => setProgresso(100), esperar);
+    const sumir = window.setTimeout(() => {
       setVisivel(false);
       setProgresso(0);
-    }, 320);
+    }, esperar + FECHAMENTO_MS);
 
-    return () => window.clearTimeout(fim);
+    return () => {
+      window.clearTimeout(completar);
+      window.clearTimeout(sumir);
+    };
     // Só a mudança de rota deve fechar a barra, não a própria visibilidade
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, searchParams]);
