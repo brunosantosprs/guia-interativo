@@ -54,25 +54,13 @@ export function AdSlot({
   className,
   label = 'Publicidade',
 }: AdSlotProps) {
-  // Sem provedor ativo: espaço reservado discreto, útil para validar o
-  // layout antes da aprovação da conta.
-  if (ads.provider === 'none') {
-    return (
-      <div
-        className={cn(
-          'flex flex-col items-center justify-center rounded-md border border-dashed border-border bg-surface/60 text-center',
-          className,
-        )}
-        style={{ minHeight }}
-        aria-hidden="true"
-      >
-        <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground/70">
-          Espaço reservado para anúncio
-        </span>
-        <span className="mt-1 text-[10px] text-muted-foreground/50">{position}</span>
-      </div>
-    );
-  }
+  // Sem provedor ativo o bloco não existe: nada é renderizado, nem caixa,
+  // nem altura reservada. Antes ficava um retângulo tracejado escrito
+  // "Espaço reservado para anúncio", que servia para conferir o layout
+  // durante o desenvolvimento e virava buraco no meio do texto para quem
+  // lê o site. O espaço volta a existir sozinho quando o painel receber o
+  // ID do AdSense ou o código de rede do Ad Manager.
+  if (ads.provider === 'none') return null;
 
   return (
     <AdSlotAtivo

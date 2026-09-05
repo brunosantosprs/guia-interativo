@@ -67,24 +67,13 @@ export function AdBlock({
     );
   }
 
-  // type === 'adsense': so renderiza com provedor AdSense ativo + slot preenchido.
+  // type === 'adsense': so renderiza com provedor AdSense ativo + slot
+  // preenchido. Sem isso o bloco nao existe — nem caixa, nem altura
+  // reservada. O retangulo tracejado que ficava aqui ajudava a conferir o
+  // layout durante o desenvolvimento, mas para quem le o site era um
+  // buraco no meio do texto.
   const ativo = ads.provider === 'adsense' && ads.clientId && block.adsenseSlot.trim();
-  if (!ativo) {
-    return (
-      <div
-        className={cn(
-          'flex flex-col items-center justify-center rounded-md border border-dashed border-border bg-surface/60 text-center',
-          className,
-        )}
-        style={{ minHeight }}
-        aria-hidden="true"
-      >
-        <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground/70">
-          Espaço reservado para anúncio
-        </span>
-      </div>
-    );
-  }
+  if (!ativo) return null;
 
   return (
     <Moldura label={label} className={className}>
