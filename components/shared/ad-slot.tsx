@@ -1,8 +1,13 @@
+'use client';
+
+import { useCallback, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { AD_POSITIONS, type AdPosition } from '@/lib/constants';
 import type { AdConfig } from '@/lib/ads';
 import { AdSenseScript, AdSenseSlot } from '@/components/shared/adsense';
 import { AdManagerScript, AdManagerSlot } from '@/components/shared/ad-manager';
+import { AdSkeleton } from '@/components/shared/ad-skeleton';
+import type { AdStatus } from '@/hooks/use-ad-status';
 import type { AdFormat } from '@/types';
 
 /**
@@ -17,6 +22,16 @@ import type { AdFormat } from '@/types';
  * programas: todo bloco é rotulado como "Publicidade", ficando visualmente
  * distinguível do conteúdo editorial, e reserva altura mínima, o que evita
  * deslocamento de layout (CLS).
+ *
+ * O ciclo de vida do bloco tem três estados, e cada um resolve um defeito
+ * que aparecia antes:
+ *
+ *   carregando — mostra o carregamento no lugar do retângulo vazio com
+ *                "Publicidade" escrito em cima
+ *   preenchido — revela o anúncio com uma transição curta, em vez do
+ *                aparecimento seco
+ *   vazio      — recolhe o bloco inteiro, rótulo incluído. Leilão sem
+ *                vencedor é rotina, e sem isso sobrava um buraco na página
  */
 
 interface AdSlotProps {
@@ -60,29 +75,91 @@ export function AdSlot({
   }
 
   return (
+    <AdSlotAtivo
+      position={position}
+      ads={ads}
+      format={format}
+      minHeight={minHeight}
+      className={className}
+      label={label}
+    />
+  );
+}
+
+/**
+ * A parte com estado, separada para o caminho "sem provedor" continuar
+ * sendo um retorno direto, sem hook nenhum.
+ */
+function AdSlotAtivo({
+  position,
+  ads,
+  format,
+  minHeight,
+  className,
+  label,
+}: Required<Pick<AdSlotProps, 'position' | 'ads' | 'format' | 'minHeight' | 'label'>> & {
+  className?: string;
+}) {
+  const [status, setStatus] = useState<AdStatus>('carregando');
+
+  // useCallback porque o filho dispara onStatus dentro de um efeito que o
+  // tem como dependência: uma função nova a cada render reexecutaria o
+  // efeito em loop.
+  const aoMudar = useCallback((novo: AdStatus) => setStatus(novo), []);
+
+  // Leilão sem vencedor: some com o bloco todo, inclusive o rótulo.
+  if (status === 'vazio') return null;
+
+  const carregando = status === 'carregando';
+
+  return (
     // `max-w-full overflow-hidden`: o script do AdSense grava uma largura fixa
     // em pixels no iframe. Se ela vier maior que a coluna, ela alarga a pagina
     // inteira no celular em vez de estourar so o anuncio.
     <aside className={cn('w-full max-w-full overflow-hidden', className)} aria-label={label}>
-      <p className="mb-1.5 text-center text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground/60">
+      <p
+        className={cn(
+          'mb-1.5 text-center text-[10px] font-medium uppercase tracking-[0.18em]',
+          'transition-colors duration-500',
+          carregando ? 'text-muted-foreground/30' : 'text-muted-foreground/60',
+        )}
+      >
         {label}
       </p>
 
-      {ads.provider === 'adsense' ? (
-        <AdSenseSlot
-          slot={AD_POSITIONS[position].adsenseSlot}
-          clientId={ads.clientId!}
-          format={format}
-          minHeight={minHeight}
-        />
-      ) : (
-        <AdManagerSlot
-          position={position}
-          networkCode={ads.networkCode!}
-          format={format}
-          minHeight={minHeight}
-        />
-      )}
+      {/* O anúncio fica montado desde o início, atrás do carregamento: é ele
+          que precisa estar no DOM para o script preencher. O carregamento
+          apenas cobre o espaço enquanto isso não acontece. */}
+      <div className="relative" style={{ minHeight }}>
+        {carregando ? (
+          <AdSkeleton minHeight={minHeight} className="absolute inset-0 z-10" />
+        ) : null}
+
+        <div
+          className={cn(
+            'transition-opacity duration-500',
+            carregando ? 'opacity-0' : 'opacity-100',
+          )}
+        >
+          {ads.provider === 'adsense' ? (
+            <AdSenseSlot
+              slot={AD_POSITIONS[position].adsenseSlot}
+              clientId={ads.clientId!}
+              format={format}
+              minHeight={minHeight}
+              onStatus={aoMudar}
+            />
+          ) : (
+            <AdManagerSlot
+              position={position}
+              networkCode={ads.networkCode!}
+              format={format}
+              minHeight={minHeight}
+              onStatus={aoMudar}
+            />
+          )}
+        </div>
+      </div>
     </aside>
   );
 }

@@ -1,7 +1,9 @@
+import { Suspense } from 'react';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { WhatsAppFloat } from '@/components/layout/whatsapp-float';
 import { CookieConsent } from '@/components/shared/cookie-consent';
+import { RouteProgress } from '@/components/shared/route-progress';
 import { JsonLd, organizationSchema, websiteSchema } from '@/components/shared/json-ld';
 import { getSettings } from '@/lib/settings';
 import { prisma } from '@/lib/prisma';
@@ -50,6 +52,12 @@ export default async function PublicLayout({ children }: { children: React.React
 
   return (
     <>
+      {/* Suspense obrigatorio: RouteProgress le searchParams, e sem a
+          fronteira o Next desliga a geracao estatica de todas as paginas. */}
+      <Suspense fallback={null}>
+        <RouteProgress />
+      </Suspense>
+
       <JsonLd
         data={[
           organizationSchema(settings.siteName, settings.logoUrl),

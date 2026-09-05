@@ -89,7 +89,11 @@ const config: Config = {
           from: { opacity: '0', transform: 'translateY(14px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        // Faixa de luz que atravessa um bloco de carregamento.
+        // Precisa do quadro inicial: sem ele a animacao parte de
+        // translateX(0) e a faixa para em cima do bloco em vez de sair.
         shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(100%)' },
         },
       },

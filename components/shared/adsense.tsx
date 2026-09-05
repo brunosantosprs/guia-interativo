@@ -2,6 +2,7 @@
 
 import Script from 'next/script';
 import { useEffect, useRef } from 'react';
+import { useAdSenseStatus, type AdStatus } from '@/hooks/use-ad-status';
 import type { AdFormat } from '@/types';
 
 /**
@@ -40,11 +41,16 @@ interface AdSenseSlotProps {
   format: AdFormat;
   /** Altura mínima reservada, em pixels, para evitar deslocamento de layout. */
   minHeight: number;
+  /** Avisa o bloco pai a cada mudança de estado, para ele mostrar o
+      carregamento ou recolher o espaço quando não vier anúncio. */
+  onStatus?: (status: AdStatus) => void;
 }
 
 /** Um bloco do AdSense. O tamanho é decidido pelo próprio AdSense. */
-export function AdSenseSlot({ slot, clientId, format, minHeight }: AdSenseSlotProps) {
+export function AdSenseSlot({ slot, clientId, format, minHeight, onStatus }: AdSenseSlotProps) {
   const pushed = useRef(false);
+  const insRef = useRef<HTMLModElement>(null);
+  const status = useAdSenseStatus(insRef);
 
   useEffect(() => {
     if (pushed.current) return;
@@ -56,8 +62,13 @@ export function AdSenseSlot({ slot, clientId, format, minHeight }: AdSenseSlotPr
     }
   }, []);
 
+  useEffect(() => {
+    onStatus?.(status);
+  }, [status, onStatus]);
+
   return (
     <ins
+      ref={insRef}
       className="adsbygoogle block"
       style={{ display: 'block', minHeight }}
       data-ad-client={clientId}

@@ -5,6 +5,7 @@ import { useEffect, useId, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { AD_MANAGER_SIZES, adManagerPath } from '@/lib/ads';
 import type { AdPosition } from '@/lib/constants';
+import { useAdManagerStatus, type AdStatus } from '@/hooks/use-ad-status';
 import type { AdFormat } from '@/types';
 
 /**
@@ -61,6 +62,8 @@ interface AdManagerSlotProps {
   format: AdFormat;
   minHeight: number;
   className?: string;
+  /** Avisa o bloco pai quando o leilao termina, com ou sem anuncio. */
+  onStatus?: (status: AdStatus) => void;
 }
 
 /**
@@ -77,10 +80,12 @@ export function AdManagerSlot({
   format,
   minHeight,
   className,
+  onStatus,
 }: AdManagerSlotProps) {
   // useId traz ':' , que é inválido em id de elemento para o GPT
   const divId = `gpt-${position}-${useId().replace(/:/g, '')}`;
   const slotRef = useRef<unknown>(null);
+  const status = useAdManagerStatus(divId);
 
   useEffect(() => {
     const googletag = filaGpt();
@@ -106,6 +111,10 @@ export function AdManagerSlot({
       slotRef.current = null;
     };
   }, [divId, format, networkCode, position]);
+
+  useEffect(() => {
+    onStatus?.(status);
+  }, [status, onStatus]);
 
   return <div id={divId} className={cn('mx-auto', className)} style={{ minHeight }} />;
 }
