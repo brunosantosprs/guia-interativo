@@ -101,10 +101,33 @@ const DESTINOS = [
 // Conferencias antes de mandar qualquer coisa
 // ---------------------------------------------------------------------------
 
-if (!fs.existsSync('.vercel/project.json')) {
+/**
+ * A CLI grava o vinculo em dois formatos diferentes, e os dois valem:
+ *
+ *   project.json — `vercel link` numa pasta, um projeto so
+ *   repo.json    — repositorio ligado, com a lista de projetos dentro
+ *
+ * Checar apenas project.json fazia o script recusar um projeto que ja
+ * estava ligado, mandando rodar de novo um comando que nao mudaria nada.
+ */
+const vinculo = ['.vercel/project.json', '.vercel/repo.json'].find((arquivo) =>
+  fs.existsSync(arquivo),
+);
+
+if (!vinculo) {
   console.error('\n  x Esta pasta ainda nao esta ligada a um projeto da Vercel.');
   console.error('    Rode antes:  npx vercel link\n');
   process.exit(1);
+}
+
+/** Nome do projeto, so para o relatorio deixar claro para onde vai. */
+function nomeDoProjeto() {
+  try {
+    const dados = JSON.parse(fs.readFileSync(vinculo, 'utf8'));
+    return dados.projects?.[0]?.name ?? dados.name ?? dados.projectId ?? 'projeto ligado';
+  } catch {
+    return 'projeto ligado';
+  }
 }
 
 const impedimentos = [];
@@ -137,7 +160,8 @@ if (impedimentos.length > 0) {
 // Envio
 // ---------------------------------------------------------------------------
 
-console.log(`\n  Dominio de producao: ${urlProducao}`);
+console.log(`\n  Projeto: ${nomeDoProjeto()}`);
+console.log(`  Dominio de producao: ${urlProducao}`);
 console.log(simulacao ? '  Modo simulacao — nada sera enviado.\n' : '  Enviando...\n');
 
 let enviadas = 0;
