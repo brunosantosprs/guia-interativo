@@ -33,7 +33,8 @@
     "autor:especialista": "tsx scripts/conteudo/autor-especialista.mts",
     "texto:auditar": "tsx scripts/conteudo/texto-auditar.mts",
     "texto:exportar": "tsx scripts/conteudo/texto-exportar.mts",
-    "adsense:check": "node scripts/adsense-check.mjs"
+    "adsense:check": "node scripts/adsense-check.mjs",
+    "post:corpo": "tsx scripts/conteudo/post-corpo.mts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
