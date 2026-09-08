@@ -32,7 +32,8 @@
     "vercel:env": "node scripts/vercel-env.mjs",
     "autor:especialista": "tsx scripts/conteudo/autor-especialista.mts",
     "texto:auditar": "tsx scripts/conteudo/texto-auditar.mts",
-    "texto:exportar": "tsx scripts/conteudo/texto-exportar.mts"
+    "texto:exportar": "tsx scripts/conteudo/texto-exportar.mts",
+    "adsense:check": "node scripts/adsense-check.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
