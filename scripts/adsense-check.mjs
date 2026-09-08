@@ -82,8 +82,24 @@ for (const rota of ROTAS) {
     continue;
   }
 
-  const script = /adsbygoogle\.js\?client=(ca-pub-\d+)/.exec(p.texto);
-  const meta = /<meta name="google-adsense-account" content="(ca-pub-\d+)"/.exec(p.texto);
+  // Precisa ser uma tag <script> de verdade, dentro do <head>, e nao
+  // qualquer aparicao do texto no HTML.
+  //
+  // O <Script> do next/script com strategy="afterInteractive" deixava no
+  // HTML servido apenas um <link rel="preload"> com a mesma URL, e injetava
+  // a tag de verdade so depois da hidratacao, no navegador. A busca por
+  // texto dava positivo enquanto o rastreador do AdSense, que le o HTML e
+  // nao executa a injecao, nao achava nada. Foi assim que este verificador
+  // aprovou um site que o Google recusou.
+  const fim = p.texto.indexOf('</head>');
+  const cabeca = fim > 0 ? p.texto.slice(0, fim + 7) : '';
+
+  const script =
+    /<script[^>]+src="https:\/\/pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js\?client=(ca-pub-\d+)"/.exec(
+      cabeca,
+    );
+  const soPreload = !script && /rel="preload"[^>]*adsbygoogle/.test(p.texto);
+  const meta = /<meta name="google-adsense-account" content="(ca-pub-\d+)"/.exec(cabeca);
 
   if (script) {
     comScript++;
@@ -96,8 +112,9 @@ for (const rota of ROTAS) {
 
   const marca = script && meta ? 'ok' : ' x';
   const idade = p.idade ? `  cache ${Math.round(Number(p.idade) / 60)} min` : '';
+  const aviso = soPreload ? '  (so preload, sem tag)' : '';
   console.log(
-    `    ${marca} ${rota.padEnd(46)} script:${script ? 'sim' : 'NAO'}  meta:${meta ? 'sim' : 'NAO'}${idade}`,
+    `    ${marca} ${rota.padEnd(46)} script:${script ? 'sim' : 'NAO'}  meta:${meta ? 'sim' : 'NAO'}${idade}${aviso}`,
   );
 }
 

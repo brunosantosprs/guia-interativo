@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { AD_POSITIONS, type AdPosition } from '@/lib/constants';
 import type { AdConfig } from '@/lib/ads';
-import { AdSenseScript, AdSenseSlot } from '@/components/shared/adsense';
+import { AdSenseSlot } from '@/components/shared/adsense';
 import { AdManagerScript, AdManagerSlot } from '@/components/shared/ad-manager';
 import { AdSkeleton } from '@/components/shared/ad-skeleton';
 import type { AdStatus } from '@/hooks/use-ad-status';
@@ -155,12 +155,16 @@ function AdSlotAtivo({
 /**
  * Script do provedor ativo. Montado uma única vez, no layout raiz.
  *
- * Nenhum script de anúncio é carregado enquanto não houver provedor —
- * evita chamadas inúteis em desenvolvimento e mantém a página limpa
- * durante a análise do AdSense.
+ * O AdSense não passa por aqui: a tag dele é escrita literalmente no
+ * <head> em app/layout.tsx. O motivo está comentado lá — o rastreador do
+ * Google precisa encontrar a tag no HTML servido, e o next/script só a
+ * injeta depois da hidratação, deixando no HTML apenas um preload.
+ *
+ * O Ad Manager continua aqui porque o GPT é carregado e operado por
+ * JavaScript de qualquer forma: os slots só existem depois que o script
+ * roda, então não há nada que um rastreador pudesse verificar no HTML.
  */
 export function AdProviderScript({ ads }: { ads: AdConfig }) {
-  if (ads.provider === 'adsense') return <AdSenseScript clientId={ads.clientId} />;
   if (ads.provider === 'admanager') return <AdManagerScript networkCode={ads.networkCode} />;
   return null;
 }

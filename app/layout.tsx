@@ -137,8 +137,29 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Pré-conexões que reduzem a latência dos scripts do Google */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {ads.provider === 'adsense' ? (
-          <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+        {ads.provider === 'adsense' && ads.clientId ? (
+          <>
+            <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+            {/*
+              Tag literal, e nao o <Script> do next/script.
+              Com strategy="afterInteractive", o Next coloca no HTML apenas um
+              <link rel="preload"> e injeta a tag de verdade depois, pelo
+              JavaScript, ja no navegador. O rastreador do AdSense le o HTML
+              servido e nao executa essa injecao, entao ele nao encontrava
+              snippet nenhum e a verificacao do site falhava com "Nao foi
+              possivel verificar seu site" — mesmo com o codigo aparecendo
+              na busca por texto, porque o que aparecia era o preload.
+
+              Escrita assim, a tag vai no <head> do HTML servido, que e
+              exatamente onde o Google manda colocar. O async preserva o
+              carregamento nao bloqueante que o next/script daria.
+            */}
+            <script
+              async
+              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ads.clientId}`}
+              crossOrigin="anonymous"
+            />
+          </>
         ) : null}
         {ads.provider === 'admanager' ? (
           <link rel="preconnect" href="https://securepubads.g.doubleclick.net" />
