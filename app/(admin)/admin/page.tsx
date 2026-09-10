@@ -18,6 +18,9 @@ import { STATUS_LABELS } from '@/lib/constants';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { RepublishButton } from '@/components/admin/republish-button';
+import { PainelAudiencia } from '@/components/admin/painel-audiencia';
+import { relatorioGa } from '@/lib/analytics';
+import { artigosMaisVistos, resumoVisitas } from '@/lib/visitas';
 
 export const dynamic = 'force-dynamic';
 
@@ -87,7 +90,13 @@ async function getStats() {
 
 export default async function AdminDashboardPage() {
   const session = await auth();
-  const stats = await getStats().catch(() => null);
+
+  const [stats, ga, visitas, artigos] = await Promise.all([
+    getStats().catch(() => null),
+    relatorioGa(),
+    resumoVisitas().catch(() => ({ hoje: 0, ontem: 0, seteDias: 0, trintaDias: 0, total: 0 })),
+    artigosMaisVistos().catch(() => []),
+  ]);
 
   if (!stats) {
     return (
@@ -143,13 +152,13 @@ export default async function AdminDashboardPage() {
       label: 'Mensagens',
       value: stats.messagesTotal,
       hint: `${stats.messagesNew} sem leitura`,
-      href: '/admin',
+      href: '/admin/mensagens',
       icon: Inbox,
     },
     {
       label: 'Visualizações',
       value: stats.views.toLocaleString('pt-BR'),
-      hint: 'Somatório dos artigos',
+      hint: 'Nos artigos, desde a contagem',
       href: '/admin/posts',
       icon: Eye,
     },
@@ -205,6 +214,8 @@ export default async function AdminDashboardPage() {
         ))}
       </div>
 
+      <PainelAudiencia ga={ga} visitas={visitas} artigos={artigos} />
+
       <div className="grid gap-6 lg:grid-cols-12">
         {/* Últimas edições */}
         <section className="rounded-lg border border-border bg-background lg:col-span-7">
@@ -257,22 +268,37 @@ export default async function AdminDashboardPage() {
 
         {/* Mensagens recentes */}
         <section className="rounded-lg border border-border bg-background lg:col-span-5">
-          <header className="border-b border-border px-5 py-4">
+          <header className="flex items-center justify-between border-b border-border px-5 py-4">
             <h2 className="font-serif text-lg">Mensagens recebidas</h2>
+            <Link
+              href="/admin/mensagens"
+              className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Ver todas
+            </Link>
           </header>
 
           <ul className="divide-y divide-border">
             {stats.recentMessages.map((message) => (
-              <li key={message.id} className="px-5 py-3.5">
-                <div className="flex items-start justify-between gap-3">
+              <li key={message.id}>
+                <Link
+                  href="/admin/mensagens"
+                  className="flex items-start justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-surface"
+                >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{message.name}</p>
+                    <p
+                      className={`truncate text-sm ${
+                        message.status === 'NOVO' ? 'font-semibold' : 'font-medium'
+                      }`}
+                    >
+                      {message.name}
+                    </p>
                     <p className="truncate text-xs text-muted-foreground">{message.subject}</p>
                   </div>
                   <span className="shrink-0 text-xs text-muted-foreground">
                     {formatDateShort(message.createdAt)}
                   </span>
-                </div>
+                </Link>
               </li>
             ))}
 

@@ -424,3 +424,27 @@ model Subscriber {
 
   @@map("subscribers")
 }
+
+// ===========================================================================
+// VISITAS
+// ===========================================================================
+
+// Um registro por pagina vista, com data e hora.
+//
+// O contador agregado em Post.views responde "quantas visitas este artigo
+// teve"; esta tabela responde "quantas visitas houve ontem", que o inteiro
+// sozinho nunca conseguiria. As duas coisas sao gravadas na mesma requisicao.
+//
+// `path` guarda o caminho ja normalizado, sem query string, para o mesmo
+// artigo nao se dividir em varias linhas por causa de parametros de campanha.
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  postId    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([path, createdAt])
+  @@index([postId])
+  @@map("page_views")
+}

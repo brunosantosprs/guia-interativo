@@ -5,6 +5,7 @@ import { WhatsAppFloat } from '@/components/layout/whatsapp-float';
 import { CookieConsent } from '@/components/shared/cookie-consent';
 import { RouteProgress } from '@/components/shared/route-progress';
 import { PageTransition } from '@/components/shared/page-transition';
+import { RegistrarVisita } from '@/components/shared/registrar-visita';
 import { JsonLd, organizationSchema, websiteSchema } from '@/components/shared/json-ld';
 import { getSettings } from '@/lib/settings';
 import { prisma } from '@/lib/prisma';
@@ -59,6 +60,8 @@ export default async function PublicLayout({ children }: { children: React.React
         <RouteProgress />
         <PageTransition />
       </Suspense>
+
+      <RegistrarVisita />
 
       <JsonLd
         data={[

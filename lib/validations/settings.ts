@@ -257,3 +257,13 @@ export const subscriberSchema = z.object({
   email: z.string().email('Informe um e-mail válido'),
   name: z.string().max(120).optional(),
 });
+
+// ---------------------------------------------------------------------------
+// Mensagens de contato (painel)
+// ---------------------------------------------------------------------------
+
+export const mensagemUpdateSchema = z.object({
+  status: z.enum(['NOVO', 'EM_ATENDIMENTO', 'RESPONDIDO', 'ARQUIVADO']),
+});
+
+export type MensagemUpdateInput = z.infer<typeof mensagemUpdateSchema>;

@@ -298,7 +298,9 @@ async function main() {
       create: {
         ...data,
         slug: post.slug,
-        views: Math.floor(Math.random() * 900) + 120,
+        // Comeca em zero: a contagem real vem de /api/visitas, e numero
+        // inventado no painel e pior que numero nenhum.
+        views: 0,
         tags: { connect: tagRecords.map((t) => ({ id: t.id })) },
       },
     });

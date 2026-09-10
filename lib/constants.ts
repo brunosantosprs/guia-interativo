@@ -53,6 +53,7 @@ export const ADMIN_NAV = [
   { label: 'Tipos de Cortinas', href: '/admin/cortinas', icon: 'Blinds' },
   { label: 'Serviços', href: '/admin/servicos', icon: 'Wrench' },
   { label: 'Mídia', href: '/admin/media', icon: 'Image' },
+  { label: 'Mensagens', href: '/admin/mensagens', icon: 'Inbox' },
   { label: 'Usuários', href: '/admin/users', icon: 'Users', adminOnly: true },
   { label: 'Configurações', href: '/admin/settings', icon: 'Settings', adminOnly: true },
 ] as const;
