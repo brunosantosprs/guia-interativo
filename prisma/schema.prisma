@@ -405,6 +405,14 @@ model ContactMessage {
   subject   String
   message   String     @db.Text
   status    LeadStatus @default(NOVO)
+
+  // De onde a pessoa falou. originPath e a pagina em que o formulario foi
+  // enviado; referrer e a pagina anterior, quando ela veio de dentro do
+  // site. Sem isso o atendimento comeca sem saber o que a pessoa estava
+  // lendo quando decidiu escrever.
+  originPath String?
+  referrer   String?
+
   createdAt DateTime   @default(now())
 
   @@index([status])

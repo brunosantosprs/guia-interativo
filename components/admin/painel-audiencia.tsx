@@ -1,77 +1,121 @@
 import Link from 'next/link';
 import { ArrowUpRight, BarChart3, Info } from 'lucide-react';
 import type { RelatorioGa } from '@/lib/analytics';
-import type { ArtigoVisitado, ResumoVisitas } from '@/lib/visitas';
+import { PERIODOS, type ArtigoVisitado, type PeriodoId, type ResumoVisitas } from '@/lib/visitas';
 
 /**
- * Bloco de audiência do painel: números por período e as páginas mais vistas.
+ * Bloco de audiência do painel.
  *
- * Duas fontes lado a lado, cada uma no que faz melhor. O Google Analytics
- * traz o histórico que já existe e o ranking do site inteiro; a contagem
- * própria traz o número por artigo, sem depender de bloqueador de anúncios.
+ * O filtro de período no topo comanda tudo o que está abaixo: os totais, o
+ * ranking de artigos da contagem própria e o ranking de páginas do Google
+ * Analytics. Ele é um conjunto de links com ?periodo= na URL, e não um
+ * componente de cliente — assim o servidor refaz as consultas com a janela
+ * certa e o endereço fica compartilhável.
  */
 
-function Numero({ valor }: { valor: number }) {
-  return <span className="font-serif text-2xl">{valor.toLocaleString('pt-BR')}</span>;
-}
+type PaginaVista = { path: string; visualizacoes: number };
+
+const RESUMO_POR_PERIODO: Record<PeriodoId, (r: ResumoVisitas) => number> = {
+  hoje: (r) => r.hoje,
+  ontem: (r) => r.ontem,
+  '7dias': (r) => r.seteDias,
+  '30dias': (r) => r.trintaDias,
+  tudo: (r) => r.total,
+};
 
 export function PainelAudiencia({
+  periodo,
   ga,
   visitas,
   artigos,
+  paginas,
 }: {
+  periodo: PeriodoId;
   ga: RelatorioGa;
   visitas: ResumoVisitas;
   artigos: ArtigoVisitado[];
+  paginas: PaginaVista[];
 }) {
-  const proprios = [
-    { label: 'Hoje', valor: visitas.hoje },
-    { label: 'Ontem', valor: visitas.ontem },
-    { label: '7 dias', valor: visitas.seteDias },
-    { label: '30 dias', valor: visitas.trintaDias },
-  ];
+  const rotulo = PERIODOS.find((p) => p.id === periodo)?.label ?? '7 dias';
+  const totalPeriodo = RESUMO_POR_PERIODO[periodo](visitas);
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-2">
+      {/* Filtro de período */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-serif text-lg">Audiência</h2>
-        <p className="text-xs text-muted-foreground">
-          Contagem própria desde a instalação · Google Analytics com o histórico completo
-        </p>
+
+        <div
+          className="flex flex-wrap gap-1.5"
+          role="group"
+          aria-label="Filtrar relatórios por período"
+        >
+          {PERIODOS.map((item) => (
+            <Link
+              key={item.id}
+              href={`/admin?periodo=${item.id}`}
+              scroll={false}
+              aria-current={periodo === item.id ? 'true' : undefined}
+              className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                periodo === item.id
+                  ? 'border-transparent bg-secondary text-secondary-foreground'
+                  : 'border-border text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
       </div>
 
-      {/* Períodos, contagem própria */}
+      {/* Totais do período escolhido */}
       <div className="rounded-lg border border-border bg-background">
-        <header className="flex items-center justify-between border-b border-border px-5 py-3.5">
-          <h3 className="text-sm font-medium">Páginas vistas (contagem do site)</h3>
+        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-3.5">
+          <h3 className="text-sm font-medium">Páginas vistas · {rotulo}</h3>
           <span className="text-xs text-muted-foreground">
-            {visitas.total.toLocaleString('pt-BR')} no total
+            {visitas.total.toLocaleString('pt-BR')} desde o início da contagem
           </span>
         </header>
 
-        <div className="grid grid-cols-2 divide-x divide-y divide-border sm:grid-cols-4 sm:divide-y-0">
-          {proprios.map((item) => (
-            <div key={item.label} className="px-5 py-4">
-              <Numero valor={item.valor} />
-              <p className="mt-0.5 text-xs text-muted-foreground">{item.label}</p>
-            </div>
-          ))}
+        <div className="grid gap-px bg-border sm:grid-cols-3">
+          <div className="bg-background px-5 py-4">
+            <p className="font-serif text-3xl">{totalPeriodo.toLocaleString('pt-BR')}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Contagem do site · {rotulo.toLowerCase()}
+            </p>
+          </div>
+
+          <div className="bg-background px-5 py-4">
+            <p className="font-serif text-3xl">
+              {ga.configurado ? ga.resumo.visualizacoes.toLocaleString('pt-BR') : '—'}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Google Analytics · {rotulo.toLowerCase()}
+            </p>
+          </div>
+
+          <div className="bg-background px-5 py-4">
+            <p className="font-serif text-3xl">
+              {ga.configurado ? ga.resumo.visitantes.toLocaleString('pt-BR') : '—'}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Pessoas diferentes · GA</p>
+          </div>
         </div>
 
         {visitas.total === 0 ? (
           <p className="flex items-start gap-2 border-t border-border px-5 py-3 text-xs leading-relaxed text-muted-foreground">
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            Ainda sem registros. A contagem começa a partir da primeira visita depois desta
-            atualização, então os números de 7 e 30 dias só ficam completos com o tempo.
+            A contagem própria começou agora, então 7 e 30 dias só ficam completos com o tempo. O
+            Google Analytics, quando conectado, traz o histórico que já existe.
           </p>
         ) : null}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* Top artigos, contagem própria */}
+        {/* Ranking da contagem própria */}
         <div className="rounded-lg border border-border bg-background">
           <header className="border-b border-border px-5 py-3.5">
-            <h3 className="text-sm font-medium">Artigos mais vistos · 30 dias</h3>
+            <h3 className="text-sm font-medium">Mais vistos · {rotulo}</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">Pela contagem do próprio site</p>
           </header>
 
@@ -93,71 +137,74 @@ export function PainelAudiencia({
             ))}
 
             {artigos.length === 0 ? (
-              <li className="px-5 py-10 text-center text-sm text-muted-foreground">
-                Nenhuma visita registrada ainda.
+              <li className="px-5 py-8 text-center text-sm text-muted-foreground">
+                Nenhum artigo visitado {rotulo.toLowerCase()}.
               </li>
             ) : null}
           </ol>
+
+          {paginas.length > 0 ? (
+            <div className="border-t border-border px-5 py-3">
+              <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+                Todas as páginas, inclusive fichas e institucionais
+              </p>
+              <ul className="space-y-1">
+                {paginas.slice(0, 5).map((pagina) => (
+                  <li key={pagina.path} className="flex items-center gap-3 text-xs">
+                    <span className="min-w-0 flex-1 truncate text-muted-foreground">
+                      {pagina.path}
+                    </span>
+                    <span className="shrink-0 font-medium">
+                      {pagina.visualizacoes.toLocaleString('pt-BR')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
 
-        {/* Google Analytics */}
+        {/* Ranking do Google Analytics */}
         <div className="rounded-lg border border-border bg-background">
           <header className="flex items-center justify-between border-b border-border px-5 py-3.5">
             <div>
-              <h3 className="text-sm font-medium">Google Analytics</h3>
+              <h3 className="text-sm font-medium">Google Analytics · {rotulo}</h3>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {ga.configurado ? 'Top 10 páginas · 30 dias' : 'Integração pendente'}
+                {ga.configurado ? 'Top 10 páginas do site inteiro' : 'Integração pendente'}
               </p>
             </div>
             <BarChart3 className="h-4 w-4 text-accent" strokeWidth={1.6} />
           </header>
 
           {ga.configurado ? (
-            <>
-              <div className="grid grid-cols-2 divide-x divide-y divide-border border-b border-border sm:grid-cols-4 sm:divide-y-0">
-                {ga.periodos.map((periodo) => (
-                  <div key={periodo.id} className="px-4 py-3">
-                    <p className="font-serif text-xl">
-                      {periodo.visualizacoes.toLocaleString('pt-BR')}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">
-                      {periodo.label} · {periodo.visitantes.toLocaleString('pt-BR')} pessoas
-                    </p>
-                  </div>
-                ))}
-              </div>
+            <ol className="divide-y divide-border">
+              {ga.topPaginas.map((pagina, indice) => (
+                <li key={pagina.path}>
+                  <Link
+                    href={pagina.path}
+                    target="_blank"
+                    className="flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-surface"
+                  >
+                    <span className="w-4 shrink-0 text-xs text-muted-foreground">{indice + 1}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm">{pagina.titulo}</span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {pagina.path}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-sm font-medium">
+                      {pagina.visualizacoes.toLocaleString('pt-BR')}
+                    </span>
+                  </Link>
+                </li>
+              ))}
 
-              <ol className="divide-y divide-border">
-                {ga.topPaginas.map((pagina, indice) => (
-                  <li key={pagina.path}>
-                    <Link
-                      href={pagina.path}
-                      target="_blank"
-                      className="flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-surface"
-                    >
-                      <span className="w-4 shrink-0 text-xs text-muted-foreground">
-                        {indice + 1}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm">{pagina.titulo}</span>
-                        <span className="block truncate text-xs text-muted-foreground">
-                          {pagina.path}
-                        </span>
-                      </span>
-                      <span className="shrink-0 text-sm font-medium">
-                        {pagina.visualizacoes.toLocaleString('pt-BR')}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-
-                {ga.topPaginas.length === 0 ? (
-                  <li className="px-5 py-10 text-center text-sm text-muted-foreground">
-                    Sem dados no período.
-                  </li>
-                ) : null}
-              </ol>
-            </>
+              {ga.topPaginas.length === 0 ? (
+                <li className="px-5 py-8 text-center text-sm text-muted-foreground">
+                  Sem dados {rotulo.toLowerCase()}.
+                </li>
+              ) : null}
+            </ol>
           ) : (
             <div className="space-y-3 px-5 py-5">
               <p className="text-sm leading-relaxed text-muted-foreground">{ga.motivo}</p>
@@ -173,11 +220,12 @@ export function PainelAudiencia({
                 </li>
                 <li>
                   3. No Google Analytics, em Administrador · Acesso à propriedade, adicione o e-mail
-                  da conta de serviço como <span className="font-medium text-foreground">Leitor</span>.
+                  da conta de serviço como{' '}
+                  <span className="font-medium text-foreground">Leitor</span>.
                 </li>
                 <li>
-                  4. Copie do JSON o <code className="rounded bg-surface px-1">client_email</code> e a{' '}
-                  <code className="rounded bg-surface px-1">private_key</code>, e o número da
+                  4. Copie do JSON o <code className="rounded bg-surface px-1">client_email</code> e
+                  a <code className="rounded bg-surface px-1">private_key</code>, e o número da
                   propriedade em Administrador · Detalhes da propriedade.
                 </li>
                 <li>

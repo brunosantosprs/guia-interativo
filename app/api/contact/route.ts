@@ -10,6 +10,21 @@ import { contactSchema, subscriberSchema } from '@/lib/validations/settings';
  * 2. Limitação por janela de tempo — no máximo 3 mensagens do mesmo e-mail
  *    em 10 minutos, verificado direto no banco (sem dependência externa).
  */
+/**
+ * Reduz a origem informada pelo navegador a um caminho do próprio site.
+ *
+ * Descarta query string e qualquer endereço externo: o que interessa ao
+ * atendimento é saber que a pessoa estava lendo /blog/cortinas-para-cozinha,
+ * não de qual busca ou rede social ela chegou antes disso.
+ */
+function caminhoInterno(valor?: string) {
+  const bruto = valor?.trim();
+  if (!bruto || !bruto.startsWith('/')) return null;
+
+  const limpo = bruto.split('?')[0].split('#')[0];
+  return limpo.length > 1 ? limpo.replace(/\/+$/, '') || '/' : limpo;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -75,6 +90,10 @@ export async function POST(request: Request) {
         phone: data.phone?.trim() || null,
         subject: data.subject.trim(),
         message: data.message.trim(),
+        // Só guardamos caminho interno: nada de URL completa de outro site,
+        // que traria dados de navegação alheios ao atendimento.
+        originPath: caminhoInterno(data.originPath),
+        referrer: caminhoInterno(data.referrer),
       },
       select: { id: true, createdAt: true },
     });

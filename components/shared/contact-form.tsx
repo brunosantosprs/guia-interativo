@@ -22,6 +22,26 @@ const SUBJECTS = [
   'Outro assunto',
 ];
 
+/**
+ * A página anterior, só quando ela é do próprio site.
+ *
+ * Vindo do Google ou de uma rede social, devolve vazio: essa informação não
+ * ajuda no atendimento e não precisa ser guardada.
+ */
+function paginaAnterior() {
+  try {
+    const anterior = document.referrer;
+    if (!anterior) return undefined;
+
+    const url = new URL(anterior);
+    if (url.origin !== window.location.origin) return undefined;
+
+    return url.pathname;
+  } catch {
+    return undefined;
+  }
+}
+
 /** Formulário público de contato, validado com o mesmo schema Zod da API. */
 export function ContactForm() {
   const { toast } = useToast();
@@ -46,7 +66,14 @@ export function ContactForm() {
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'contact', ...values }),
+        body: JSON.stringify({
+          type: 'contact',
+          ...values,
+          // Onde a pessoa estava e de onde ela veio. A API descarta o que
+          // não for um caminho do próprio site.
+          originPath: window.location.pathname,
+          referrer: paginaAnterior(),
+        }),
       });
       const result = await response.json();
 

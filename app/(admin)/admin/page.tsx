@@ -20,7 +20,12 @@ import { Button } from '@/components/ui/button';
 import { RepublishButton } from '@/components/admin/republish-button';
 import { PainelAudiencia } from '@/components/admin/painel-audiencia';
 import { relatorioGa } from '@/lib/analytics';
-import { artigosMaisVistos, resumoVisitas } from '@/lib/visitas';
+import {
+  artigosMaisVistos,
+  paginasMaisVistas,
+  periodoValido,
+  resumoVisitas,
+} from '@/lib/visitas';
 
 export const dynamic = 'force-dynamic';
 
@@ -88,14 +93,20 @@ async function getStats() {
   };
 }
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: { periodo?: string };
+}) {
   const session = await auth();
+  const periodo = periodoValido(searchParams.periodo);
 
-  const [stats, ga, visitas, artigos] = await Promise.all([
+  const [stats, ga, visitas, artigos, paginas] = await Promise.all([
     getStats().catch(() => null),
-    relatorioGa(),
+    relatorioGa(periodo),
     resumoVisitas().catch(() => ({ hoje: 0, ontem: 0, seteDias: 0, trintaDias: 0, total: 0 })),
-    artigosMaisVistos().catch(() => []),
+    artigosMaisVistos(periodo).catch(() => []),
+    paginasMaisVistas(periodo).catch(() => []),
   ]);
 
   if (!stats) {
@@ -214,7 +225,13 @@ export default async function AdminDashboardPage() {
         ))}
       </div>
 
-      <PainelAudiencia ga={ga} visitas={visitas} artigos={artigos} />
+      <PainelAudiencia
+        periodo={periodo}
+        ga={ga}
+        visitas={visitas}
+        artigos={artigos}
+        paginas={paginas}
+      />
 
       <div className="grid gap-6 lg:grid-cols-12">
         {/* Últimas edições */}

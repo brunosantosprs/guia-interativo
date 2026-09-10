@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Phone, Search, Trash2 } from 'lucide-react';
+import { ExternalLink, Mail, Phone, Search, Trash2 } from 'lucide-react';
 import type { LeadStatus } from '@prisma/client';
 import { LEAD_STATUS_LABELS } from '@/lib/constants';
 import { formatDateShort } from '@/lib/utils';
@@ -18,6 +18,8 @@ export type MensagemItem = {
   subject: string;
   message: string;
   status: LeadStatus;
+  originPath: string | null;
+  referrer: string | null;
   createdAt: Date;
 };
 
@@ -248,6 +250,52 @@ export function MessagesInbox({ items }: { items: MensagemItem[] }) {
 
               <div className="px-5 py-5">
                 <p className="whitespace-pre-wrap text-sm leading-relaxed">{aberta.message}</p>
+              </div>
+
+              {/* De onde a pessoa escreveu */}
+              <div className="border-t border-border px-5 py-3">
+                {aberta.originPath || aberta.referrer ? (
+                  <dl className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs">
+                    {aberta.originPath ? (
+                      <div className="flex items-center gap-1.5">
+                        <dt className="text-muted-foreground">Enviada de:</dt>
+                        <dd>
+                          <a
+                            href={aberta.originPath}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 font-medium transition-colors hover:text-accent"
+                          >
+                            {aberta.originPath}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </dd>
+                      </div>
+                    ) : null}
+
+                    {aberta.referrer ? (
+                      <div className="flex items-center gap-1.5">
+                        <dt className="text-muted-foreground">Página anterior:</dt>
+                        <dd>
+                          <a
+                            href={aberta.referrer}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 font-medium transition-colors hover:text-accent"
+                          >
+                            {aberta.referrer}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Origem não registrada. Mensagens recebidas antes desta atualização não guardaram
+                    de qual página vieram.
+                  </p>
+                )}
               </div>
 
               <footer className="flex flex-wrap items-center gap-2 border-t border-border px-5 py-4">

@@ -249,6 +249,9 @@ export const contactSchema = z.object({
     .max(3000),
   // Campo honeypot: precisa chegar vazio (bots costumam preencher tudo)
   website: z.string().max(0, 'Falha na verificação anti-spam').optional(),
+  // Origem, preenchida pelo navegador. Nunca aparece para quem escreve.
+  originPath: z.string().max(300).optional(),
+  referrer: z.string().max(300).optional(),
 });
 
 export type ContactInput = z.infer<typeof contactSchema>;

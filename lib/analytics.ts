@@ -1,11 +1,12 @@
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
+import type { PeriodoId } from '@/lib/visitas';
 
 /**
  * Leitura do Google Analytics 4 para o painel.
  *
  * O GA já roda no site pelo script de medição, que só envia dados. Para
  * ler de volta é preciso a Data API, e ela usa uma credencial de serviço,
- * independente da tag: três variáveis de ambiente, descritas no README.
+ * independente da tag: três variáveis de ambiente, descritas no .env.example.
  *
  *   GA_PROPERTY_ID   — o número da propriedade, não o G-XXXXXXXX
  *   GA_CLIENT_EMAIL  — o e-mail da conta de serviço
@@ -15,18 +16,7 @@ import { BetaAnalyticsDataClient } from '@google-analytics/data';
  * passo a passo em vez de um gráfico vazio.
  */
 
-export type PeriodoId = 'hoje' | 'ontem' | '7dias' | '30dias';
-
-export const PERIODOS: { id: PeriodoId; label: string; inicio: string; fim: string }[] = [
-  { id: 'hoje', label: 'Hoje', inicio: 'today', fim: 'today' },
-  { id: 'ontem', label: 'Ontem', inicio: 'yesterday', fim: 'yesterday' },
-  { id: '7dias', label: '7 dias', inicio: '7daysAgo', fim: 'today' },
-  { id: '30dias', label: '30 dias', inicio: '30daysAgo', fim: 'today' },
-];
-
 export type ResumoPeriodo = {
-  id: PeriodoId;
-  label: string;
   visualizacoes: number;
   visitantes: number;
 };
@@ -39,7 +29,24 @@ export type PaginaTop = {
 
 export type RelatorioGa =
   | { configurado: false; motivo: string }
-  | { configurado: true; periodos: ResumoPeriodo[]; topPaginas: PaginaTop[] };
+  | { configurado: true; resumo: ResumoPeriodo; topPaginas: PaginaTop[] };
+
+/** O mesmo período do filtro, traduzido para a linguagem de datas do GA. */
+function intervalo(periodo: PeriodoId): { startDate: string; endDate: string } {
+  switch (periodo) {
+    case 'hoje':
+      return { startDate: 'today', endDate: 'today' };
+    case 'ontem':
+      return { startDate: 'yesterday', endDate: 'yesterday' };
+    case '7dias':
+      return { startDate: '7daysAgo', endDate: 'today' };
+    case '30dias':
+      return { startDate: '30daysAgo', endDate: 'today' };
+    case 'tudo':
+      // O GA4 guarda no máximo 14 meses no padrão da conta.
+      return { startDate: '2020-01-01', endDate: 'today' };
+  }
+}
 
 function credenciais() {
   const propertyId = process.env.GA_PROPERTY_ID?.trim();
@@ -64,13 +71,8 @@ function cliente(clientEmail: string, privateKey: string) {
 
 const numero = (valor?: string | null) => Number(valor ?? 0) || 0;
 
-/**
- * Busca os quatro períodos e as dez páginas mais vistas nos últimos 30 dias.
- *
- * Uma única chamada de rede para os períodos, usando dateRanges múltiplos, e
- * outra para o ranking.
- */
-export async function relatorioGa(): Promise<RelatorioGa> {
+/** Totais e as dez páginas mais vistas no período escolhido. */
+export async function relatorioGa(periodo: PeriodoId = '7dias'): Promise<RelatorioGa> {
   const config = credenciais();
 
   if (!config) {
@@ -84,20 +86,17 @@ export async function relatorioGa(): Promise<RelatorioGa> {
   try {
     const api = cliente(config.clientEmail, config.privateKey);
     const property = `properties/${config.propertyId}`;
+    const dateRanges = [intervalo(periodo)];
 
     const [resumo, ranking] = await Promise.all([
       api.runReport({
         property,
-        dateRanges: PERIODOS.map((p) => ({
-          startDate: p.inicio,
-          endDate: p.fim,
-          name: p.id,
-        })),
+        dateRanges,
         metrics: [{ name: 'screenPageViews' }, { name: 'totalUsers' }],
       }),
       api.runReport({
         property,
-        dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+        dateRanges,
         dimensions: [{ name: 'pagePath' }, { name: 'pageTitle' }],
         metrics: [{ name: 'screenPageViews' }],
         orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
@@ -105,28 +104,22 @@ export async function relatorioGa(): Promise<RelatorioGa> {
       }),
     ]);
 
-    // Com vários dateRanges, cada linha traz a dimensão implícita dateRange.
-    const linhas = resumo[0].rows ?? [];
+    const linha = resumo[0].rows?.[0];
 
-    const periodos: ResumoPeriodo[] = PERIODOS.map((periodo, indice) => {
-      const linha =
-        linhas.find((item) => item.dimensionValues?.[0]?.value === periodo.id) ?? linhas[indice];
-
-      return {
-        id: periodo.id,
-        label: periodo.label,
-        visualizacoes: numero(linha?.metricValues?.[0]?.value),
-        visitantes: numero(linha?.metricValues?.[1]?.value),
-      };
-    });
-
-    const topPaginas: PaginaTop[] = (ranking[0].rows ?? []).map((linha) => ({
-      path: linha.dimensionValues?.[0]?.value ?? '/',
-      titulo: (linha.dimensionValues?.[1]?.value ?? '').split(' | ')[0] || '—',
-      visualizacoes: numero(linha.metricValues?.[0]?.value),
+    const topPaginas: PaginaTop[] = (ranking[0].rows ?? []).map((item) => ({
+      path: item.dimensionValues?.[0]?.value ?? '/',
+      titulo: (item.dimensionValues?.[1]?.value ?? '').split(' | ')[0] || '—',
+      visualizacoes: numero(item.metricValues?.[0]?.value),
     }));
 
-    return { configurado: true, periodos, topPaginas };
+    return {
+      configurado: true,
+      resumo: {
+        visualizacoes: numero(linha?.metricValues?.[0]?.value),
+        visitantes: numero(linha?.metricValues?.[1]?.value),
+      },
+      topPaginas,
+    };
   } catch (error) {
     return {
       configurado: false,
